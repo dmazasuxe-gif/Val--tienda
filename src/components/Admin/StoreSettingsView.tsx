@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StoreSettings, RunwaySlide, ShippingOption, Coupon } from '../../types';
 import { 
   Store, 
@@ -378,9 +378,14 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
     const result = await requestPushPermission();
     if (result === 'granted') {
       setPushStatus('✅ Permiso de notificaciones push activado exitosamente en este dispositivo.');
-      setFormData((prev) => ({ ...prev, pushNotifications: true }));
+      const newSettings = { ...formData, pushNotifications: true };
+      setFormData(newSettings);
+      onSaveSettings(newSettings);
     } else if (result === 'denied') {
       setPushStatus('denied');
+      const newSettings = { ...formData, pushNotifications: false };
+      setFormData(newSettings);
+      onSaveSettings(newSettings);
     } else if (result === 'iframe_blocked' || isInIframe) {
       setPushStatus('iframe');
     } else if (isIOS && !isStandalone) {
@@ -391,6 +396,17 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
       setPushStatus('dismissed');
     }
   };
+
+  // Sync push status on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted' && formData.pushNotifications) {
+        setPushStatus('✅ Permiso de notificaciones push está activado.');
+      } else if (Notification.permission === 'denied') {
+        setPushStatus('denied');
+      }
+    }
+  }, [formData.pushNotifications]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
