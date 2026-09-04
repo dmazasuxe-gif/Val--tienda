@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Product, CategoryType, GenderType, ProductColor, StoreSettings } from '../../types';
 import { X, Plus, Trash2, Upload, AlertCircle } from 'lucide-react';
+import Barcode from 'react-barcode';
 
 interface ProductFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (product: Product) => void;
   productToEdit?: Product | null;
+  initialBarcode?: string;
   settings: StoreSettings;
 }
 
@@ -33,12 +35,14 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   onClose,
   onSave,
   productToEdit,
+  initialBarcode,
   settings
 }) => {
   if (!isOpen) return null;
 
   const [name, setName] = useState('');
   const [sku, setSku] = useState('');
+  const [barcode, setBarcode] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<CategoryType>('calzado');
   const [gender, setGender] = useState<GenderType>('varones');
@@ -48,7 +52,6 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   const [stock, setStock] = useState(10);
   const [lowStockThreshold, setLowStockThreshold] = useState(4);
   const [images, setImages] = useState<string[]>([]);
-  const [newImageUrl, setNewImageUrl] = useState('');
   const [sizes, setSizes] = useState<string[]>([]);
   const [customSizeInput, setCustomSizeInput] = useState('');
   const [colors, setColors] = useState<ProductColor[]>([]);
@@ -64,6 +67,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     if (productToEdit) {
       setName(productToEdit.name);
       setSku(productToEdit.sku);
+      setBarcode(productToEdit.barcode || '');
       setDescription(productToEdit.description);
       setCategory(productToEdit.category);
       setGender(productToEdit.gender);
@@ -82,6 +86,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     } else {
       setName('');
       setSku(`PROD-${Math.floor(1000 + Math.random() * 9000)}`);
+      setBarcode(initialBarcode || '');
       setDescription('');
       setCategory('calzado');
       setGender('varones');
@@ -90,9 +95,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setOriginalPrice(undefined);
       setStock(12);
       setLowStockThreshold(4);
-      setImages([
-        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80'
-      ]);
+      setImages([]);
       setSizes(['39', '40', '41', '42']);
       setColors([
         { name: 'Negro', hex: '#09090b' },
@@ -103,25 +106,54 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setIsFeatured(false);
       setIsNew(true);
     }
-  }, [productToEdit]);
+  }, [productToEdit, initialBarcode]);
 
-  const handleAddImageUrl = () => {
-    if (newImageUrl.trim()) {
-      setImages((prev) => [...prev, newImageUrl.trim()]);
-      setNewImageUrl('');
-    }
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setImages((prev) => [...prev, reader.result as string]);
-        }
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedBase64 = await compressImage(file);
+        setImages((prev) => [...prev, compressedBase64]);
+      } catch (error) {
+        console.error("Error comprimiendo imagen:", error);
+      }
     }
   };
 
@@ -183,6 +215,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     const newProduct: Product = {
       id: productToEdit ? productToEdit.id : `prod-${Date.now()}`,
       sku: sku.trim(),
+      barcode: barcode.trim() || undefined,
       name: name.trim(),
       description: description.trim(),
       category,
@@ -249,8 +282,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               1. Información Principal
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="sm:col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
                 <label className="block text-slate-700 font-semibold mb-1">Nombre del Producto *</label>
                 <input
                   type="text"
@@ -276,6 +309,94 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   onChange={(e) => setSku(e.target.value)}
                   className="w-full px-3.5 py-2 bg-slate-50 border border-sky-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-sky-500 uppercase shadow-2xs font-mono font-bold"
                 />
+              </div>
+            </div>
+
+            {/* Barcode Section */}
+            <div className="bg-sky-50 p-4 border border-sky-200 rounded-2xl space-y-3">
+              <label className="block text-sky-800 font-bold mb-1 flex items-center gap-2">
+                Código de Barras (Opcional)
+                <button
+                  type="button"
+                  onClick={() => setBarcode(Math.floor(1000000000000 + Math.random() * 9000000000000).toString())}
+                  className="px-2 py-1 bg-sky-200 hover:bg-sky-300 text-sky-800 rounded text-[10px] transition-colors cursor-pointer"
+                >
+                  Generar
+                </button>
+              </label>
+              
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <input
+                  type="text"
+                  placeholder="Escanea o escribe el código de barras"
+                  value={barcode}
+                  onChange={(e) => setBarcode(e.target.value)}
+                  className="w-full max-w-xs px-3.5 py-2 bg-white border border-sky-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 font-mono shadow-inner"
+                />
+                
+                {barcode && (
+                  <div className="flex flex-col sm:flex-row gap-3 items-center bg-white p-2 rounded-xl border border-sky-200 shadow-sm w-full sm:w-auto overflow-x-auto">
+                    <div id="barcode-container" className="bg-white p-1">
+                      <Barcode value={barcode} height={40} width={1.5} fontSize={12} displayValue={true} />
+                    </div>
+                    <div className="flex flex-row sm:flex-col gap-1 w-full sm:w-auto">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const svg = document.querySelector('#barcode-container svg') as SVGElement;
+                          if (svg) {
+                            const svgData = new XMLSerializer().serializeToString(svg);
+                            const canvas = document.createElement("canvas");
+                            const ctx = canvas.getContext("2d");
+                            const img = new Image();
+                            img.onload = () => {
+                              canvas.width = img.width;
+                              canvas.height = img.height;
+                              ctx?.drawImage(img, 0, 0);
+                              const pngFile = canvas.toDataURL("image/png");
+                              const downloadLink = document.createElement("a");
+                              downloadLink.download = `barcode-${barcode}.png`;
+                              downloadLink.href = pngFile;
+                              downloadLink.click();
+                            };
+                            img.src = "data:image/svg+xml;base64," + btoa(svgData);
+                          }
+                        }}
+                        className="flex-1 px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold cursor-pointer whitespace-nowrap text-center transition-colors"
+                      >
+                        Descargar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const svg = document.querySelector('#barcode-container svg') as SVGElement;
+                          if (svg) {
+                            const printWindow = window.open('', '', 'width=600,height=400');
+                            if (printWindow) {
+                              printWindow.document.write(`
+                                <html>
+                                  <head><title>Imprimir Código de Barras</title></head>
+                                  <body style="display:flex; justify-content:center; align-items:center; height:100vh; margin:0;">
+                                    ${svg.outerHTML}
+                                  </body>
+                                </html>
+                              `);
+                              printWindow.document.close();
+                              printWindow.focus();
+                              setTimeout(() => {
+                                printWindow.print();
+                                printWindow.close();
+                              }, 250);
+                            }
+                          }
+                        }}
+                        className="flex-1 px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold cursor-pointer whitespace-nowrap text-center transition-colors"
+                      >
+                        Imprimir
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -420,30 +541,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               </h3>
             </div>
 
-            {/* Input URL or File Upload */}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex-1 flex gap-2">
-                <input
-                  type="url"
-                  placeholder="Pega URL de imagen (https://...)"
-                  value={newImageUrl}
-                  onChange={(e) => setNewImageUrl(e.target.value)}
-                  className="flex-1 px-3.5 py-2 bg-slate-50 border border-sky-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddImageUrl}
-                  className="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-800 rounded-2xl font-bold flex items-center gap-1 shrink-0 border border-sky-200 cursor-pointer shadow-2xs"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Agregar URL</span>
-                </button>
-              </div>
-
-              {/* Upload local file */}
-              <label className="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-2xl font-bold flex items-center justify-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
-                <Upload className="w-3.5 h-3.5 text-sky-600" />
-                <span>Subir Foto del Móvil</span>
+            {/* Input Options */}
+            <div className="flex-1 space-y-2 w-full">
+              <label className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 border border-sky-200 border-dashed rounded-2xl cursor-pointer hover:border-sky-500 hover:bg-sky-50/50 transition-colors">
+                <Upload className="w-5 h-5 text-sky-600" />
+                <span className="text-sm text-sky-800 font-bold">Haz clic para subir fotos desde Celular / PC</span>
                 <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
               </label>
             </div>

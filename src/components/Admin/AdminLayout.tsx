@@ -19,14 +19,14 @@ import {
   Trash2, 
   ShieldCheck,
   CheckCircle2,
-  Sparkles
+  ScanLine
 } from 'lucide-react';
 import { ProductFormModal } from './ProductFormModal';
 import { OrderManager } from './OrderManager';
 import { ReportsView } from './ReportsView';
 import { StockAlertsView } from './StockAlertsView';
 import { StoreSettingsView } from './StoreSettingsView';
-import { RunwayManager } from './RunwayManager';
+import { BarcodeScannerView } from './BarcodeScannerView';
 
 interface AdminLayoutProps {
   products: Product[];
@@ -42,7 +42,7 @@ interface AdminLayoutProps {
   onPreviewTracking?: (orderCode: string) => void;
 }
 
-type AdminTab = 'products' | 'orders' | 'reports' | 'stock' | 'runway' | 'settings';
+type AdminTab = 'scanner' | 'products' | 'orders' | 'reports' | 'stock' | 'settings';
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({
   products,
@@ -60,6 +60,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   const [activeTab, setActiveTab] = useState<AdminTab>('products');
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [initialBarcode, setInitialBarcode] = useState<string | undefined>();
   const [productSearch, setProductSearch] = useState('');
   const [productCategoryFilter, setProductCategoryFilter] = useState<'all' | 'calzado' | 'ropa'>('all');
 
@@ -71,14 +72,16 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     const matchesSearch =
       p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
       p.sku.toLowerCase().includes(productSearch.toLowerCase()) ||
+      p.barcode?.toLowerCase().includes(productSearch.toLowerCase()) ||
       p.brand.toLowerCase().includes(productSearch.toLowerCase());
 
     const matchesCat = productCategoryFilter === 'all' || p.category === productCategoryFilter;
     return matchesSearch && matchesCat;
   });
 
-  const handleOpenNewProduct = () => {
+  const handleOpenNewProduct = (barcode?: string) => {
     setProductToEdit(null);
+    setInitialBarcode(barcode);
     setProductModalOpen(true);
   };
 
@@ -151,9 +154,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         {/* Tab Navigation Bar */}
         <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-t border-sky-100/80 pt-1">
           {[
+            { id: 'scanner' as const, label: 'Lector de Códigos', icon: ScanLine },
             { id: 'products' as const, label: 'Productos & Catálogo', icon: Package, count: products.length },
             { id: 'orders' as const, label: 'Órdenes de Compra', icon: ShoppingBag, count: pendingOrdersCount, badgeColor: 'bg-amber-100 text-amber-800 border border-amber-200' },
-            { id: 'runway' as const, label: '✨ Pasarela de Imágenes', icon: Sparkles, count: settings.runwaySlides?.length || 4, badgeColor: 'bg-sky-100 text-sky-800 border border-sky-200' },
             { id: 'reports' as const, label: 'Reportes Financieros (PDF/Excel)', icon: TrendingUp },
             { id: 'stock' as const, label: 'Alertas de Stock', icon: AlertTriangle, count: lowStockCount, badgeColor: 'bg-rose-100 text-rose-700 border border-rose-200' },
             { id: 'settings' as const, label: 'Configuración Tienda & WhatsApp', icon: SettingsIcon }
@@ -354,11 +357,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           />
         )}
 
-        {/* Tab: Runway / Pasarela de Imágenes */}
-        {activeTab === 'runway' && (
-          <RunwayManager
-            settings={settings}
-            onSaveSettings={onSaveSettings}
+        {/* Tab: Barcode Scanner */}
+        {activeTab === 'scanner' && (
+          <BarcodeScannerView
+            products={products}
+            onOpenProductForm={(barcode) => handleOpenNewProduct(barcode)}
+            onEditProduct={(p) => handleEditProduct(p)}
           />
         )}
 
@@ -378,6 +382,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         onClose={() => setProductModalOpen(false)}
         onSave={onSaveProduct}
         productToEdit={productToEdit}
+        initialBarcode={initialBarcode}
         settings={settings}
       />
 
