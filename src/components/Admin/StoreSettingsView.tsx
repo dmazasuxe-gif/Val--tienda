@@ -372,17 +372,21 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
   const handleEnablePush = async () => {
     // Check if inside iframe
     const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+    const isIOS = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+    const isStandalone = typeof window !== 'undefined' && ('standalone' in window.navigator && (window.navigator as unknown as { standalone: boolean }).standalone);
 
     const result = await requestPushPermission();
     if (result === 'granted') {
-      setPushStatus('✅ Permiso de notificaciones push activado exitosamente en este navegador.');
+      setPushStatus('✅ Permiso de notificaciones push activado exitosamente en este dispositivo.');
       setFormData((prev) => ({ ...prev, pushNotifications: true }));
     } else if (result === 'denied') {
       setPushStatus('denied');
     } else if (result === 'iframe_blocked' || isInIframe) {
       setPushStatus('iframe');
+    } else if (isIOS && !isStandalone) {
+      setPushStatus('ios_install_required');
     } else if (result === 'unsupported') {
-      setPushStatus('unsupported');
+      setPushStatus(isIOS ? 'ios_install_required' : 'unsupported');
     } else {
       setPushStatus('dismissed');
     }
@@ -1641,6 +1645,43 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
                     <span>Abrir en val-tienda.vercel.app</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
+                </div>
+              )}
+
+              {pushStatus === 'ios_install_required' && (
+                <div className="space-y-3 text-sky-950 bg-sky-50 border border-sky-200 p-4 rounded-2xl">
+                  <div className="flex items-center gap-2 font-extrabold text-sky-900 text-xs">
+                    <Smartphone className="w-4 h-4 text-sky-600 shrink-0" />
+                    <span>Configuración de Notificaciones Push en iPhone / iOS</span>
+                  </div>
+                  <p className="text-[11px] text-slate-700 leading-relaxed">
+                    Por restricciones del sistema operativo de Apple (iOS), <strong>las notificaciones Push de páginas web en iPhone solo funcionan cuando la web se agrega a la Pantalla de Inicio</strong>.
+                  </p>
+                  
+                  <div className="bg-white p-3 rounded-xl border border-sky-100 space-y-2">
+                    <p className="text-[11px] font-bold text-slate-800">👉 Pasos para activarlas en tu iPhone en 1 minuto:</p>
+                    <ol className="list-decimal list-inside text-[11px] text-slate-700 space-y-1.5 pl-1">
+                      <li>
+                        Abre <strong>Safari</strong> en tu iPhone y entra a <strong className="text-sky-700">https://val-tienda.vercel.app/?mode=admin</strong>
+                      </li>
+                      <li>
+                        Toca el botón <strong>Compartir</strong> (el ícono de un cuadrado con flecha hacia arriba ⎋ o 📤 en la barra inferior de Safari).
+                      </li>
+                      <li>
+                        Baja un poco y presiona <strong>&quot;Agregar a inicio&quot;</strong> (o <em>&quot;Añadir a pantalla de inicio&quot;</em> ➕).
+                      </li>
+                      <li>
+                        Presiona <strong>&quot;Agregar&quot;</strong> arriba a la derecha. Se creará el ícono de tu tienda en tu pantalla como una App.
+                      </li>
+                      <li>
+                        Abre esa nueva aplicación desde tu pantalla de inicio, ve a <strong>Configuración ➔ Solicitar Permiso Push</strong> y presiona <strong>&quot;Permitir&quot;</strong> cuando iOS te lo pregunte.
+                      </li>
+                    </ol>
+                  </div>
+
+                  <p className="text-[10px] text-slate-500 italic">
+                    Nota: Requiere iOS 16.4 o superior. En Android o PC con Google Chrome se activan directamente sin este paso.
+                  </p>
                 </div>
               )}
 
