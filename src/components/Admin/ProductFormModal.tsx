@@ -350,16 +350,22 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                             const ctx = canvas.getContext("2d");
                             const img = new Image();
                             img.onload = () => {
-                              canvas.width = img.width;
-                              canvas.height = img.height;
-                              ctx?.drawImage(img, 0, 0);
-                              const pngFile = canvas.toDataURL("image/png");
-                              const downloadLink = document.createElement("a");
-                              downloadLink.download = `barcode-${barcode}.png`;
-                              downloadLink.href = pngFile;
-                              downloadLink.click();
+                              // Asegurar que el canvas tenga un fondo blanco
+                              canvas.width = img.width || 300;
+                              canvas.height = img.height || 150;
+                              if (ctx) {
+                                ctx.fillStyle = "white";
+                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                ctx.drawImage(img, 0, 0);
+                                const pngFile = canvas.toDataURL("image/png");
+                                const downloadLink = document.createElement("a");
+                                downloadLink.download = `barcode-${barcode}.png`;
+                                downloadLink.href = pngFile;
+                                downloadLink.click();
+                              }
                             };
-                            img.src = "data:image/svg+xml;base64," + btoa(svgData);
+                            // Usar encodeURIComponent en lugar de btoa para evitar errores de caracteres
+                            img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgData);
                           }
                         }}
                         className="flex-1 px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold cursor-pointer whitespace-nowrap text-center transition-colors"
@@ -375,8 +381,22 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                             if (printWindow) {
                               printWindow.document.write(`
                                 <html>
-                                  <head><title>Imprimir Código de Barras</title></head>
-                                  <body style="display:flex; justify-content:center; align-items:center; height:100vh; margin:0;">
+                                  <head>
+                                    <title>Imprimir Código de Barras</title>
+                                    <style>
+                                      @page { margin: 0; size: auto; }
+                                      body {
+                                        margin: 0;
+                                        padding: 10px;
+                                        display: flex;
+                                        justify-content: center;
+                                        align-items: flex-start;
+                                        background: white;
+                                      }
+                                      svg { max-width: 100%; height: auto; }
+                                    </style>
+                                  </head>
+                                  <body>
                                     ${svg.outerHTML}
                                   </body>
                                 </html>
