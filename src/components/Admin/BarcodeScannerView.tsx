@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import React, { useEffect, useState, useRef } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { Product } from '../../types';
-import { Package, ScanLine, XCircle } from 'lucide-react';
+import { Package, ScanLine, AlertCircle, Loader2 } from 'lucide-react';
 
 interface BarcodeScannerViewProps {
   products: Product[];
@@ -15,82 +15,113 @@ export const BarcodeScannerView: React.FC<BarcodeScannerViewProps> = ({
   onEditProduct
 }) => {
   const [scanResult, setScanResult] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Use refs to prevent multiple triggers and store scanner instance
+  const isScanningRef = useRef(true);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
-    // We create an instance of the scanner
-    const scanner = new Html5QrcodeScanner(
-      'reader',
-      { fps: 10, qrbox: { width: 250, height: 150 } },
-      false
-    );
+    isScanningRef.current = true;
+    scannerRef.current = new Html5Qrcode("reader");
 
-    const onScanSuccess = (decodedText: string) => {
-      setScanResult(decodedText);
-      // Optional: auto-stop on scan
-      // scanner.clear();
+    const startScanner = async () => {
+      try {
+        await scannerRef.current?.start(
+          { facingMode: "environment" }, // Forzar cámara trasera (principal)
+          { 
+            fps: 10, 
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.0 // Mejor adaptabilidad en móviles
+          },
+          (decodedText) => {
+            // Escaneo exitoso
+            if (isScanningRef.current) {
+              isScanningRef.current = false; // Bloquear escaneos adicionales
+              setScanResult(decodedText);
+              setIsProcessing(true);
+              
+              // Detener cámara y redirigir
+              if (scannerRef.current && scannerRef.current.isScanning) {
+                scannerRef.current.stop().then(() => {
+                  const existingProduct = products.find(p => p.sku === decodedText || p.barcode === decodedText);
+                  
+                  // Pequeña pausa para que el usuario vea que escaneó con éxito
+                  setTimeout(() => {
+                    if (existingProduct) {
+                      onEditProduct(existingProduct);
+                    } else {
+                      onOpenProductForm(decodedText);
+                    }
+                  }, 800);
+                }).catch(console.error);
+              }
+            }
+          },
+          (errorMessage) => {
+            // Se ignora: el escáner falla constantemente mientras no enfoca nada legible, es normal.
+          }
+        );
+      } catch (err: any) {
+        console.error("Error al iniciar escáner:", err);
+        setError("No se pudo acceder a la cámara. Por favor, asegúrate de haber dado los permisos en tu navegador (celular) o revisa tu conexión.");
+      }
     };
 
-    scanner.render(onScanSuccess, (error) => {
-      // Handle parse errors silently
-    });
+    // Pequeño delay para asegurar que el DOM <div id="reader"> existe
+    const timer = setTimeout(() => {
+      startScanner();
+    }, 150);
 
-    // Cleanup when component unmounts
     return () => {
-      scanner.clear().catch(console.error);
+      clearTimeout(timer);
+      isScanningRef.current = false;
+      if (scannerRef.current && scannerRef.current.isScanning) {
+        scannerRef.current.stop().then(() => {
+          scannerRef.current?.clear();
+        }).catch(console.error);
+      }
     };
-  }, []);
-
-  const handleAction = () => {
-    if (!scanResult) return;
-    
-    // Find if a product has this barcode (we need to assume products have a barcode field)
-    // First, let's search for an existing barcode on the product level
-    const existingProduct = products.find(p => p.sku === scanResult || p.barcode === scanResult);
-    
-    if (existingProduct) {
-      onEditProduct(existingProduct);
-    } else {
-      onOpenProductForm(scanResult);
-    }
-  };
+  }, [products, onEditProduct, onOpenProductForm]);
 
   return (
     <div className="p-4 sm:p-6 bg-white rounded-3xl border border-sky-100 shadow-xs max-w-2xl mx-auto space-y-6 text-center">
       <div>
         <h2 className="text-lg font-bold text-sky-900 flex items-center justify-center gap-2">
           <ScanLine className="w-5 h-5 text-sky-600" />
-          <span>Lector de Códigos de Barras</span>
+          <span>Lector Automático de Códigos</span>
         </h2>
         <p className="text-xs text-slate-500 mt-2">
-          Escanea un código de barras usando la cámara de tu celular o PC. Si el producto ya existe, podrás ver su información completa. Si no existe, podrás registrarlo rápidamente con este código.
+          La cámara trasera está activa. Enfoca un código de barras para detectarlo automáticamente. El sistema abrirá el producto si existe, o te permitirá registrarlo.
         </p>
       </div>
 
-      <div className="rounded-2xl overflow-hidden border-2 border-sky-100 shadow-inner bg-slate-50 relative">
-        <div id="reader" className="w-full"></div>
-      </div>
-
-      {scanResult && (
-        <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 space-y-3 animate-in fade-in">
-          <p className="text-sm font-bold text-sky-800">
-            Código detectado: <span className="font-mono bg-white px-2 py-0.5 rounded border border-sky-200">{scanResult}</span>
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-            <button
-              onClick={handleAction}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <Package className="w-4 h-4" />
-              <span>Ver Producto / Registrar</span>
-            </button>
-            <button
-              onClick={() => setScanResult(null)}
-              className="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <XCircle className="w-4 h-4" />
-              <span>Escanear Otro</span>
-            </button>
-          </div>
+      {error ? (
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-2xl flex flex-col items-center gap-2 text-sm">
+          <AlertCircle className="w-6 h-6" />
+          <p>{error}</p>
+        </div>
+      ) : (
+        <div className="rounded-2xl overflow-hidden border-2 border-sky-100 shadow-inner bg-black relative w-full max-w-md mx-auto aspect-square sm:aspect-video flex items-center justify-center">
+          
+          <div id="reader" className="w-full h-full [&>video]:object-cover [&>video]:w-full [&>video]:h-full"></div>
+          
+          {isProcessing && scanResult && (
+            <div className="absolute inset-0 bg-slate-900/95 flex flex-col items-center justify-center text-white p-6 space-y-4 animate-in fade-in zoom-in duration-300 z-10">
+              <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <Package className="w-8 h-8 text-white" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-slate-300 font-medium">¡Código detectado!</p>
+                <p className="text-2xl font-mono font-bold tracking-wider text-emerald-400">{scanResult}</p>
+              </div>
+              <div className="flex items-center gap-2 text-slate-300 text-sm font-medium mt-4">
+                <Loader2 className="w-4 h-4 animate-spin text-sky-400" />
+                <span>Abriendo información...</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
