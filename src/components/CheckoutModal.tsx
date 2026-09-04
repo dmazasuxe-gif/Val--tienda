@@ -160,10 +160,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       orderNumber,
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
-      customerEmail: customerEmail.trim() || undefined,
       shippingAddress: shippingAddress.trim(),
       city: city.trim(),
-      notes: finalNotes || undefined,
       items: [...cart],
       subtotal,
       shippingCost,
@@ -174,6 +172,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
+
+    if (customerEmail.trim()) {
+      newOrder.customerEmail = customerEmail.trim();
+    }
+    if (finalNotes) {
+      newOrder.notes = finalNotes;
+    }
 
     setTimeout(() => {
       saveLastTrackedCode(orderNumber);
