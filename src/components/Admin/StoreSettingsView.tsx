@@ -28,9 +28,11 @@ import {
   Copy,
   Search,
   Share2,
-  Tag
+  Tag,
+  Info,
+  ExternalLink
 } from 'lucide-react';
-import { playNotificationChime, requestPushPermission } from '../../utils/sound';
+import { playNotificationChime, requestPushPermission, getPushPermissionStatus } from '../../utils/sound';
 
 interface StoreSettingsViewProps {
   settings: StoreSettings;
@@ -368,12 +370,21 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
   };
 
   const handleEnablePush = async () => {
-    const granted = await requestPushPermission();
-    if (granted) {
-      setPushStatus('✅ Permiso de notificaciones push activado en este navegador/móvil.');
+    // Check if inside iframe
+    const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+
+    const result = await requestPushPermission();
+    if (result === 'granted') {
+      setPushStatus('✅ Permiso de notificaciones push activado exitosamente en este navegador.');
       setFormData((prev) => ({ ...prev, pushNotifications: true }));
+    } else if (result === 'denied') {
+      setPushStatus('denied');
+    } else if (result === 'iframe_blocked' || isInIframe) {
+      setPushStatus('iframe');
+    } else if (result === 'unsupported') {
+      setPushStatus('unsupported');
     } else {
-      setPushStatus('⚠️ Notificaciones push no permitidas por el navegador.');
+      setPushStatus('dismissed');
     }
   };
 
@@ -1591,9 +1602,66 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
           </div>
 
           {pushStatus && (
-            <p className="text-xs text-sky-900 bg-sky-50 p-2.5 rounded-xl border border-sky-200">
-              {pushStatus}
-            </p>
+            <div className="text-xs rounded-2xl p-3.5 border transition-all">
+              {pushStatus === 'denied' && (
+                <div className="space-y-2 text-rose-900 bg-rose-50/90 border border-rose-200 p-3 rounded-xl">
+                  <div className="flex items-center gap-2 font-bold text-rose-800">
+                    <Info className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span>El navegador tiene bloqueadas las notificaciones para este sitio</span>
+                  </div>
+                  <p className="text-[11px] text-rose-700 leading-relaxed">
+                    Para permitirlas en Chrome o Edge:
+                  </p>
+                  <ol className="list-decimal list-inside text-[11px] text-rose-700 space-y-1 font-medium pl-1">
+                    <li>Haz clic en el ícono de <strong>Ajustes del sitio / Candado 🔒</strong> que está a la izquierda de la barra de direcciones (URL).</li>
+                    <li>En el apartado <strong>Notificaciones</strong>, cambia de &quot;Bloquear&quot; a <strong>&quot;Permitir&quot;</strong>.</li>
+                    <li>Recarga la página y vuelve a pulsar el botón <em>Solicitar Permiso Push</em>.</li>
+                  </ol>
+                </div>
+              )}
+
+              {pushStatus === 'iframe' && (
+                <div className="space-y-2 text-amber-900 bg-amber-50/90 border border-amber-200 p-3 rounded-xl">
+                  <div className="flex items-center gap-2 font-bold text-amber-800">
+                    <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Estás en la vista previa embebida (iFrame de AI Studio)</span>
+                  </div>
+                  <p className="text-[11px] text-amber-800 leading-relaxed">
+                    Por seguridad, los navegadores (Chrome, Safari, Edge) <strong>no permiten solicitar permisos de notificaciones push dentro de un iframe</strong>.
+                  </p>
+                  <p className="text-[11px] text-amber-800 leading-relaxed">
+                    👉 <strong>Para activarlas:</strong> Abre tu tienda directamente en tu dominio de Vercel en una pestaña independiente:
+                  </p>
+                  <a
+                    href="https://val-tienda.vercel.app/?mode=admin"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition-colors shadow-2xs"
+                  >
+                    <span>Abrir en val-tienda.vercel.app</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              )}
+
+              {pushStatus === 'unsupported' && (
+                <p className="text-slate-800 bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+                  ⚠️ Este navegador o dispositivo no soporta la API estándar de notificaciones Push. Te recomendamos usar Google Chrome en Android o PC.
+                </p>
+              )}
+
+              {pushStatus === 'dismissed' && (
+                <p className="text-amber-900 bg-amber-50 p-2.5 rounded-xl border border-amber-200">
+                  ⚠️ La solicitud fue cancelada o cerrada sin aceptar. Vuelve a pulsar el botón para autorizarla.
+                </p>
+              )}
+
+              {pushStatus.startsWith('✅') && (
+                <p className="text-emerald-900 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 font-semibold">
+                  {pushStatus}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -39,19 +39,30 @@ export const playNotificationChime = (): void => {
   }
 };
 
-// Request push notification permission
-export const requestPushPermission = async (): Promise<boolean> => {
-  if (!('Notification' in window)) {
-    return false;
+export type PushPermissionResult = 'granted' | 'denied' | 'default' | 'unsupported' | 'iframe_blocked';
+
+// Request push notification permission with detailed feedback
+export const getPushPermissionStatus = (): PushPermissionResult => {
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    return 'unsupported';
+  }
+  return Notification.permission as PushPermissionResult;
+};
+
+export const requestPushPermission = async (): Promise<PushPermissionResult> => {
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    return 'unsupported';
   }
   if (Notification.permission === 'granted') {
-    return true;
+    return 'granted';
   }
-  if (Notification.permission !== 'denied') {
+  try {
     const permission = await Notification.requestPermission();
-    return permission === 'granted';
+    return permission as PushPermissionResult;
+  } catch (err) {
+    console.warn('Notification permission request error:', err);
+    return 'iframe_blocked';
   }
-  return false;
 };
 
 // Send browser push notification

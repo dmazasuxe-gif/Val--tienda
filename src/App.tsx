@@ -159,13 +159,15 @@ export default function App() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const productsSectionRef = useRef<HTMLDivElement>(null);
 
-  // Keep live refs to viewMode and isAdminLoggedIn for use in real-time callbacks
+  // Keep live refs to viewMode, isAdminLoggedIn and settings for use in real-time callbacks
   const viewModeRef = useRef(viewMode);
   const isAdminLoggedInRef = useRef(isAdminLoggedIn);
+  const settingsRef = useRef(settings);
   useEffect(() => {
     viewModeRef.current = viewMode;
     isAdminLoggedInRef.current = isAdminLoggedIn;
-  }, [viewMode, isAdminLoggedIn]);
+    settingsRef.current = settings;
+  }, [viewMode, isAdminLoggedIn, settings]);
 
   // Track previous orders to detect newly arrived orders from customers in real time
   const isInitialOrdersLoad = useRef(true);
@@ -193,9 +195,10 @@ export default function App() {
           // Update known IDs
           newOrders.forEach(o => knownOrderIdsRef.current.add(o.id));
 
-          // Only trigger toast / sound / push if Admin is logged in and viewing the Admin Panel
+          // STRICT CHECK: Only trigger toast / sound / push if Admin is logged in and viewing the Admin Panel
           if (viewModeRef.current === 'admin' && isAdminLoggedInRef.current) {
             const latestNewOrder = newOrders[0];
+            const currentSettings = settingsRef.current;
             const notif: OrderNotification = {
               id: `notif-${Date.now()}-${latestNewOrder.id}`,
               orderId: latestNewOrder.id,
@@ -209,13 +212,13 @@ export default function App() {
 
             setActiveToast(notif);
 
-            if (settings.notificationSound) {
+            if (currentSettings.notificationSound) {
               playNotificationChime();
             }
-            if (settings.pushNotifications) {
+            if (currentSettings.pushNotifications) {
               sendPushNotification(
                 `🛍️ Nuevo Pedido #${latestNewOrder.orderNumber}`,
-                `${latestNewOrder.customerName} ha ordenado ${notif.itemCount} productos`
+                `${latestNewOrder.customerName} ha ordenado ${notif.itemCount} productos por ${currentSettings.currencySymbol} ${latestNewOrder.total.toFixed(2)}`
               );
             }
           }
