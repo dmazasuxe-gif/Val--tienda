@@ -194,16 +194,39 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
     window.open(url, '_blank');
   };
 
+  const compressImage = (file: File, maxWidth: number, callback: (url: string) => void) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', 0.8));
+        }
+      };
+      if (typeof e.target?.result === 'string') {
+        img.src = e.target.result;
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleRunwayFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setNewRunwayUrl(reader.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+      compressImage(file, 800, (compressedUrl) => {
+        setNewRunwayUrl(compressedUrl);
+      });
     }
   };
 
@@ -254,26 +277,18 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setFormData((prev) => ({ ...prev, logoUrl: reader.result as string }));
-        }
-      };
-      reader.readAsDataURL(file);
+      compressImage(file, 400, (compressedUrl) => {
+        setFormData((prev) => ({ ...prev, logoUrl: compressedUrl }));
+      });
     }
   };
 
   const handleDriverPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setFormData((prev) => ({ ...prev, driverPhoto: reader.result as string }));
-        }
-      };
-      reader.readAsDataURL(file);
+      compressImage(file, 400, (compressedUrl) => {
+        setFormData((prev) => ({ ...prev, driverPhoto: compressedUrl }));
+      });
     }
   };
 
