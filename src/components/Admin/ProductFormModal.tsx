@@ -62,6 +62,46 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   const [isFeatured, setIsFeatured] = useState(false);
   const [isNew, setIsNew] = useState(true);
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
+  const [barcodeImage, setBarcodeImage] = useState<{ url: string, file?: File } | null>(null);
+
+  useEffect(() => {
+    if (!barcode) {
+      setBarcodeImage(null);
+      return;
+    }
+    
+    // Esperar a que el SVG del código de barras se renderice en el DOM
+    const timer = setTimeout(() => {
+      const svg = document.querySelector('#barcode-container svg') as SVGElement;
+      if (svg) {
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        img.onload = () => {
+          canvas.width = img.width || 300;
+          canvas.height = img.height || 150;
+          if (ctx) {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            const dataUrl = canvas.toDataURL("image/png");
+            
+            fetch(dataUrl)
+              .then(res => res.blob())
+              .then(blob => {
+                 const file = new File([blob], `barcode-${barcode}.png`, { type: 'image/png' });
+                 setBarcodeImage({ url: dataUrl, file });
+              })
+              .catch(console.error);
+          }
+        };
+        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgData);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [barcode]);
 
   useEffect(() => {
     if (productToEdit) {
@@ -342,35 +382,34 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     <div className="flex flex-row sm:flex-col gap-1 w-full sm:w-auto">
                       <button
                         type="button"
-                        onClick={() => {
-                          const svg = document.querySelector('#barcode-container svg') as SVGElement;
-                          if (svg) {
-                            const svgData = new XMLSerializer().serializeToString(svg);
-                            const canvas = document.createElement("canvas");
-                            const ctx = canvas.getContext("2d");
-                            const img = new Image();
-                            img.onload = () => {
-                              // Asegurar que el canvas tenga un fondo blanco
-                              canvas.width = img.width || 300;
-                              canvas.height = img.height || 150;
-                              if (ctx) {
-                                ctx.fillStyle = "white";
-                                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                                ctx.drawImage(img, 0, 0);
-                                const pngFile = canvas.toDataURL("image/png");
-                                const downloadLink = document.createElement("a");
-                                downloadLink.download = `barcode-${barcode}.png`;
-                                downloadLink.href = pngFile;
-                                downloadLink.click();
-                              }
-                            };
-                            // Usar encodeURIComponent en lugar de btoa para evitar errores de caracteres
-                            img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgData);
+                        disabled={!barcodeImage}
+                        onClick={async () => {
+                          if (!barcodeImage) return;
+                          
+                          // Web Share API (Ideal para guardar imágenes en iOS / iPhone y Android)
+                          if (barcodeImage.file && navigator.share && navigator.canShare && navigator.canShare({ files: [barcodeImage.file] })) {
+                            try {
+                              await navigator.share({
+                                files: [barcodeImage.file],
+                                title: `Código de Barras - ${barcode}`,
+                              });
+                              return;
+                            } catch (err) {
+                              console.log("Compartir cancelado o fallido", err);
+                            }
                           }
+                          
+                          // Fallback (Descarga normal para PC)
+                          const downloadLink = document.createElement("a");
+                          downloadLink.download = `barcode-${barcode}.png`;
+                          downloadLink.href = barcodeImage.url;
+                          downloadLink.click();
                         }}
-                        className="flex-1 px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold cursor-pointer whitespace-nowrap text-center transition-colors"
+                        className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer whitespace-nowrap text-center transition-colors ${
+                          barcodeImage ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-slate-50 text-slate-400 cursor-not-allowed'
+                        }`}
                       >
-                        Descargar
+                        {barcodeImage ? 'Descargar' : 'Preparando...'}
                       </button>
                       <button
                         type="button"
