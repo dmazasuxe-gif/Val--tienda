@@ -159,6 +159,18 @@ export default function App() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const productsSectionRef = useRef<HTMLDivElement>(null);
 
+  // Keep live refs to viewMode and isAdminLoggedIn for use in real-time callbacks
+  const viewModeRef = useRef(viewMode);
+  const isAdminLoggedInRef = useRef(isAdminLoggedIn);
+  useEffect(() => {
+    viewModeRef.current = viewMode;
+    isAdminLoggedInRef.current = isAdminLoggedIn;
+  }, [viewMode, isAdminLoggedIn]);
+
+  // Track previous orders to detect newly arrived orders from customers in real time
+  const isInitialOrdersLoad = useRef(true);
+  const knownOrderIdsRef = useRef<Set<string>>(new Set());
+
   // Real-time Cloud Synchronization via Firebase Firestore
   useEffect(() => {
     testFirebaseConnection();
@@ -171,6 +183,45 @@ export default function App() {
 
     // 2. Live Sync Orders from Cloud
     const unsubOrders = subscribeToOrders((cloudOrders) => {
+      // Check for incoming new orders to notify admin
+      if (isInitialOrdersLoad.current) {
+        isInitialOrdersLoad.current = false;
+        knownOrderIdsRef.current = new Set(cloudOrders.map(o => o.id));
+      } else {
+        const newOrders = cloudOrders.filter(o => !knownOrderIdsRef.current.has(o.id));
+        if (newOrders.length > 0) {
+          // Update known IDs
+          newOrders.forEach(o => knownOrderIdsRef.current.add(o.id));
+
+          // Only trigger toast / sound / push if Admin is logged in and viewing the Admin Panel
+          if (viewModeRef.current === 'admin' && isAdminLoggedInRef.current) {
+            const latestNewOrder = newOrders[0];
+            const notif: OrderNotification = {
+              id: `notif-${Date.now()}-${latestNewOrder.id}`,
+              orderId: latestNewOrder.id,
+              orderNumber: latestNewOrder.orderNumber,
+              customerName: latestNewOrder.customerName,
+              total: latestNewOrder.total,
+              itemCount: latestNewOrder.items.reduce((s, i) => s + i.quantity, 0),
+              timestamp: new Date().toISOString(),
+              read: false
+            };
+
+            setActiveToast(notif);
+
+            if (settings.notificationSound) {
+              playNotificationChime();
+            }
+            if (settings.pushNotifications) {
+              sendPushNotification(
+                `🛍️ Nuevo Pedido #${latestNewOrder.orderNumber}`,
+                `${latestNewOrder.customerName} ha ordenado ${notif.itemCount} productos`
+              );
+            }
+          }
+        }
+      }
+
       setOrders(cloudOrders);
       saveStoredOrders(cloudOrders);
     }, getStoredOrders());
@@ -447,17 +498,21 @@ export default function App() {
     };
 
     saveStoredNotifications([notif, ...getStoredNotifications()]);
-    setActiveToast(notif);
 
-    // 5. Real-Time Audio Chime & Push Alert
-    if (settings.notificationSound) {
-      playNotificationChime();
-    }
-    if (settings.pushNotifications) {
-      sendPushNotification(
-        `🛍️ Nuevo Pedido #${newOrder.orderNumber}`,
-        `${newOrder.customerName} ha ordenado ${notif.itemCount} productos por ${settings.currencySymbol} ${newOrder.total.toFixed(2)}`
-      );
+    // 5. Only notify with Toast / Sound / Push if the Administrator is viewing the Admin Panel
+    if (viewMode === 'admin' && isAdminLoggedIn) {
+      setActiveToast(notif);
+
+      // Real-Time Audio Chime & Push Alert
+      if (settings.notificationSound) {
+        playNotificationChime();
+      }
+      if (settings.pushNotifications) {
+        sendPushNotification(
+          `🛍️ Nuevo Pedido #${newOrder.orderNumber}`,
+          `${newOrder.customerName} ha ordenado ${notif.itemCount} productos por ${settings.currencySymbol} ${newOrder.total.toFixed(2)}`
+        );
+      }
     }
   };
 
@@ -935,21 +990,19 @@ export default function App() {
             onSuccess={handleLoginAdminSuccess}
             settings={settings}
           />
-
-          {/* Real-time Order Notification Toast */}
-          <NotificationToast
-            notification={activeToast}
-            onClose={() => setActiveToast(null)}
-            settings={settings}
-            onViewOrder={() => {
-              if (isAdminLoggedIn) {
-                setViewMode('admin');
-              } else {
-                setAdminLoginModalOpen(true);
-              }
-            }}
-          />
         </>
+      )}
+
+      {/* Real-time Order Notification Toast: Exclusively visible to the administrator when inside the admin panel */}
+      {viewMode === 'admin' && isAdminLoggedIn && (
+        <NotificationToast
+          notification={activeToast}
+          onClose={() => setActiveToast(null)}
+          settings={settings}
+          onViewOrder={() => {
+            setViewMode('admin');
+          }}
+        />
       )}
 
       {/* Order Tracking Live Modal (Accessible globally in store & admin) */}
