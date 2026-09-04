@@ -45,8 +45,6 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
 }) => {
   const [formData, setFormData] = useState<StoreSettings>({ ...settings });
   const [savedSuccess, setSavedSuccess] = useState(false);
-  const [logoInputType, setLogoInputType] = useState<'url' | 'upload'>('url');
-  const [driverPhotoInputType, setDriverPhotoInputType] = useState<'url' | 'upload'>('url');
   const [pushStatus, setPushStatus] = useState<string>('');
 
   // Runway Slide Quick Add State
@@ -54,7 +52,6 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
   const [newRunwayTitle, setNewRunwayTitle] = useState('');
   const [newRunwaySubtitle, setNewRunwaySubtitle] = useState('');
   const [newRunwayBadge, setNewRunwayBadge] = useState('PASARELA 2026');
-  const [runwayInputType, setRunwayInputType] = useState<'url' | 'upload'>('url');
 
   // Shipping Options State
   const [newShipName, setNewShipName] = useState('');
@@ -292,6 +289,15 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
     }
   };
 
+  const handleYapeQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      compressImage(file, 600, (compressedUrl) => {
+        setFormData((prev) => ({ ...prev, yapeQrUrl: compressedUrl }));
+      });
+    }
+  };
+
   // Shipping Options Handlers
   const handleAddShippingOption = () => {
     if (!newShipName.trim()) return;
@@ -511,42 +517,11 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
 
             {/* Input Options */}
             <div className="flex-1 space-y-2 w-full">
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setLogoInputType('url')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                    logoInputType === 'url' ? 'bg-sky-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Pegar URL de Imagen
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLogoInputType('upload')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                    logoInputType === 'upload' ? 'bg-sky-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Subir desde Celular / PC
-                </button>
-              </div>
-
-              {logoInputType === 'url' ? (
-                <input
-                  type="url"
-                  placeholder="https://ejemplo.com/mi-logo.png"
-                  value={formData.logoUrl}
-                  onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-sky-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-sky-500 text-xs shadow-2xs"
-                />
-              ) : (
-                <label className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-sky-200 border-dashed rounded-2xl cursor-pointer hover:border-sky-500 hover:bg-sky-50/50 transition-colors">
-                  <Upload className="w-4 h-4 text-sky-600" />
-                  <span className="text-xs text-slate-600 font-medium">Haz clic aquí para seleccionar imagen de logo</span>
-                  <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                </label>
-              )}
+              <label className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-sky-200 border-dashed rounded-2xl cursor-pointer hover:border-sky-500 hover:bg-sky-50/50 transition-colors">
+                <Upload className="w-4 h-4 text-sky-600" />
+                <span className="text-xs text-slate-600 font-medium">Haz clic aquí para subir imagen de logo desde Celular / PC</span>
+                <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+              </label>
             </div>
           </div>
         </div>
@@ -641,15 +616,27 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
             </div>
           </div>
           <div>
-            <label className="block text-slate-700 font-semibold mb-1">URL de Imagen del QR de Yape (Opcional)</label>
-            <input
-              type="text"
-              value={formData.yapeQrUrl || ''}
-              onChange={(e) => setFormData({ ...formData, yapeQrUrl: e.target.value })}
-              className="w-full px-3.5 py-2 bg-white border border-purple-200 rounded-2xl text-slate-900 text-xs focus:outline-none focus:border-purple-500 shadow-2xs"
-              placeholder="https://... o dejar vacío para generar QR automático"
-            />
-            <p className="text-[10px] text-slate-400 mt-1">Si se deja vacío, el sistema genera automáticamente un QR escaneable con el número de Yape.</p>
+            <label className="block text-slate-700 font-semibold mb-1">Imagen del QR de Yape (Opcional)</label>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              {formData.yapeQrUrl && (
+                <div className="w-16 h-16 rounded-xl bg-purple-50 border-2 border-purple-200 overflow-hidden shrink-0 shadow-xs">
+                  <img
+                    src={formData.yapeQrUrl}
+                    alt="Yape QR"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              )}
+              <div className="flex-1 w-full">
+                <label className="flex items-center gap-2 px-4 py-2.5 bg-white border border-purple-200 border-dashed rounded-2xl cursor-pointer hover:border-purple-500 hover:bg-purple-50/50 transition-colors">
+                  <Upload className="w-4 h-4 text-purple-600" />
+                  <span className="text-xs text-slate-600 font-medium">Haz clic aquí para subir imagen del QR desde Celular / PC</span>
+                  <input type="file" accept="image/*" onChange={handleYapeQrUpload} className="hidden" />
+                </label>
+              </div>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1">Si no se sube una imagen, el sistema generará automáticamente un QR escaneable con el número de Yape.</p>
           </div>
         </div>
 
@@ -1516,42 +1503,11 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
 
             {/* Input Options */}
             <div className="flex-1 space-y-2 w-full">
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setDriverPhotoInputType('url')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                    driverPhotoInputType === 'url' ? 'bg-sky-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Pegar URL de Imagen
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDriverPhotoInputType('upload')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                    driverPhotoInputType === 'upload' ? 'bg-sky-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Subir desde Celular / PC
-                </button>
-              </div>
-
-              {driverPhotoInputType === 'url' ? (
-                <input
-                  type="url"
-                  placeholder="https://ejemplo.com/foto-chofer.jpg"
-                  value={formData.driverPhoto || ''}
-                  onChange={(e) => setFormData({ ...formData, driverPhoto: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-sky-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-sky-500 text-xs shadow-2xs"
-                />
-              ) : (
-                <label className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-sky-200 border-dashed rounded-2xl cursor-pointer hover:border-sky-500 hover:bg-sky-50/50 transition-colors">
-                  <Upload className="w-4 h-4 text-sky-600" />
-                  <span className="text-xs text-slate-600 font-medium">Haz clic aquí para seleccionar la fotografía del chofer</span>
-                  <input type="file" accept="image/*" onChange={handleDriverPhotoUpload} className="hidden" />
-                </label>
-              )}
+              <label className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-sky-200 border-dashed rounded-2xl cursor-pointer hover:border-sky-500 hover:bg-sky-50/50 transition-colors">
+                <Upload className="w-4 h-4 text-sky-600" />
+                <span className="text-xs text-slate-600 font-medium">Haz clic aquí para seleccionar la fotografía del chofer desde tu equipo</span>
+                <input type="file" accept="image/*" onChange={handleDriverPhotoUpload} className="hidden" />
+              </label>
             </div>
           </div>
         </div>
@@ -1799,49 +1755,16 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
             <span>Agregar nueva imagen a la pasarela:</span>
           </p>
 
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setRunwayInputType('url')}
-              className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1 border transition-all cursor-pointer ${
-                runwayInputType === 'url' ? 'bg-white border-sky-300 text-sky-800 shadow-2xs' : 'bg-transparent text-slate-600 border-transparent'
-              }`}
-            >
-              <LinkIcon className="w-3 h-3" />
-              <span>URL Web</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setRunwayInputType('upload')}
-              className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1 border transition-all cursor-pointer ${
-                runwayInputType === 'upload' ? 'bg-white border-sky-300 text-sky-800 shadow-2xs' : 'bg-transparent text-slate-600 border-transparent'
-              }`}
-            >
-              <Upload className="w-3 h-3" />
-              <span>Subir Archivo</span>
-            </button>
-          </div>
-
-          {runwayInputType === 'url' ? (
+          <label className="border-2 border-dashed border-sky-300 hover:border-sky-400 bg-white rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-colors w-full">
+            <Upload className="w-4 h-4 text-sky-600" />
+            <span className="font-bold text-sky-800 text-xs">Haz clic aquí para subir imagen desde Celular / PC</span>
             <input
-              type="url"
-              placeholder="Pega la URL de la imagen en alta resolución (ej. https://images.unsplash.com/...)"
-              value={newRunwayUrl}
-              onChange={(e) => setNewRunwayUrl(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-sky-200 rounded-xl text-slate-900 focus:outline-none focus:border-sky-500 shadow-2xs text-xs"
+              type="file"
+              accept="image/*"
+              onChange={handleRunwayFileUpload}
+              className="hidden"
             />
-          ) : (
-            <label className="border-2 border-dashed border-sky-300 hover:border-sky-400 bg-white rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-colors">
-              <Upload className="w-4 h-4 text-sky-600" />
-              <span className="font-bold text-sky-800 text-xs">Seleccionar imagen de mi equipo</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleRunwayFileUpload}
-                className="hidden"
-              />
-            </label>
-          )}
+          </label>
 
           {newRunwayUrl && (
             <div className="w-36 h-20 rounded-xl overflow-hidden border border-sky-300 bg-black">
