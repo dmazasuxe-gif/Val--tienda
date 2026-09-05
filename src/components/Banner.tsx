@@ -122,7 +122,7 @@ export const Banner: React.FC<BannerProps> = ({
             return (
               <div
                 key={slide.id || index}
-                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                className={`absolute inset-0 bg-zinc-950 transition-opacity duration-1000 ease-in-out ${
                   isActive 
                     ? 'opacity-100 z-10 pointer-events-auto' 
                     : 'opacity-0 z-0 pointer-events-none'
@@ -132,11 +132,11 @@ export const Banner: React.FC<BannerProps> = ({
                 <img
                   src={slide.imageUrl}
                   alt={slide.title || 'Pasarela Aura'}
-                  className="w-full h-full object-cover object-center"
+                  className="w-full h-full object-cover object-center block"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
                     const target = e.currentTarget;
-                    if (!target.dataset.triedFallback) {
+                    if (!target.dataset.triedFallback && !slide.imageUrl.startsWith('data:')) {
                       target.dataset.triedFallback = 'true';
                       target.src = 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=1800&auto=format&fit=crop&q=85';
                     }

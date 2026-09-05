@@ -200,7 +200,7 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
     window.open(url, '_blank');
   };
 
-  const compressImage = (file: File, maxWidth: number, callback: (url: string) => void) => {
+  const compressImage = (file: File, maxWidth: number, callback: (url: string) => void, quality = 0.70) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const img = new Image();
@@ -217,8 +217,8 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          // High-definition JPEG at 0.80 keeps file at ~60-90KB while looking crystal clear
-          callback(canvas.toDataURL('image/jpeg', 0.80));
+          // Optimized JPEG compression at quality 0.70 keeps file at ~35-55KB while preserving HD sharpness
+          callback(canvas.toDataURL('image/jpeg', quality));
         } else if (typeof e.target?.result === 'string') {
           callback(e.target.result);
         }
@@ -241,9 +241,7 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
   const handleRunwayFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      compressImage(file, 1280, (compressedUrl) => {
-        setNewRunwayUrl(compressedUrl);
-
+      compressImage(file, 1000, (compressedUrl) => {
         // Instantly prepend new slide at position #1 (index 0) so it appears immediately on the storefront
         const currentSlides = formData.runwaySlides || [];
         const newSlide: RunwaySlide = {
@@ -256,9 +254,14 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
         const updated = { ...formData, runwaySlides: [newSlide, ...currentSlides] };
         setFormData(updated);
         onSaveSettings(updated);
-        setRunwayUploadFeedback('✅ ¡Fotografía añadida con éxito como Portada Principal (#1) de la Pasarela!');
+        setNewRunwayUrl('');
+        setNewRunwayTitle('');
+        setNewRunwaySubtitle('');
+        setRunwayUploadFeedback('✅ ¡Fotografía guardada con éxito como Portada Principal de la Pasarela!');
         setTimeout(() => setRunwayUploadFeedback(null), 5000);
-      });
+      }, 0.68);
+      // Reset input value to allow selecting the same file again
+      e.target.value = '';
     }
   };
 

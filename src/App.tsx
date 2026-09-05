@@ -682,6 +682,10 @@ export default function App() {
             onSelectCategoryFilter={(cat, gen) => {
               setSelectedCategory(cat);
               setSelectedGender(gen);
+              if (cat === 'all' && gen === 'all') {
+                setFilters(INITIAL_FILTERS);
+                setSearchQuery('');
+              }
               setCurrentPage(1);
             }}
             onSelectSpecialFilter={(type) => {
@@ -699,39 +703,39 @@ export default function App() {
             cartBounceTrigger={cartBounceTrigger}
           />
 
-          {/* If on Home View: Hero Runway Banner + EN LIQUIDACIÓN + CATEGORÍAS 3-Card + Carousels + Brands */}
+          {/* Pasarela Principal de Imágenes (Promotional Banner) - Siempre Visible en la Tienda */}
+          <Banner
+            settings={settings}
+            onExploreCategory={(cat, gen) => {
+              setSelectedCategory(cat);
+              if (gen) setSelectedGender(gen);
+              setCurrentPage(1);
+            }}
+            onShopNow={(cat, gen) => {
+              setSelectedCategory(cat);
+              setSelectedGender(gen);
+              setCurrentPage(1);
+            }}
+            onOpenSale={() => {
+              setFilters((prev) => ({ ...prev, onSaleOnly: true }));
+              setCurrentPage(1);
+            }}
+          />
+
+          {/* EN LIQUIDACIÓN Section - Siempre Visible Inmediatamente Debajo de la Pasarela de Imágenes */}
+          <LiquidationSection
+            products={products}
+            settings={settings}
+            onOpenProduct={(p) => setSelectedProduct(p)}
+            onViewAllDiscounts={() => {
+              setFilters((prev) => ({ ...prev, onSaleOnly: true }));
+              setCurrentPage(1);
+            }}
+          />
+
+          {/* Bloques Destacados de Carruseles (Visibles en Vista General / Home) */}
           {isHomeView && (
             <>
-              {/* Promotional Banner Carousel / Hero */}
-              <Banner
-                settings={settings}
-                onExploreCategory={(cat, gen) => {
-                  setSelectedCategory(cat);
-                  if (gen) setSelectedGender(gen);
-                  setCurrentPage(1);
-                }}
-                onShopNow={(cat, gen) => {
-                  setSelectedCategory(cat);
-                  setSelectedGender(gen);
-                  setCurrentPage(1);
-                }}
-                onOpenSale={() => {
-                  setFilters((prev) => ({ ...prev, onSaleOnly: true }));
-                  setCurrentPage(1);
-                }}
-              />
-
-              {/* EN LIQUIDACIÓN Section */}
-              <LiquidationSection
-                products={products}
-                settings={settings}
-                onOpenProduct={(p) => setSelectedProduct(p)}
-                onViewAllDiscounts={() => {
-                  setFilters((prev) => ({ ...prev, onSaleOnly: true }));
-                  setCurrentPage(1);
-                }}
-              />
-
               {/* CATEGORÍAS 3-Card Section */}
               <CategoryCardsSection
                 onSelectCategory={(cat, gen) => {
