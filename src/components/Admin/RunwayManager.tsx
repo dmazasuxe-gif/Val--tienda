@@ -85,7 +85,7 @@ export const RunwayManager: React.FC<RunwayManagerProps> = ({
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const maxDim = 1100;
+          const maxDim = 800; // Reduced dimension to guarantee small base64 footprint for Firestore
           let width = img.width;
           let height = img.height;
           if (width > maxDim || height > maxDim) {
@@ -102,7 +102,8 @@ export const RunwayManager: React.FC<RunwayManagerProps> = ({
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, width, height);
-            const compressed = canvas.toDataURL('image/jpeg', 0.70);
+            // Higher compression to avoid hitting Firestore document 1MB limit when saving many slides
+            const compressed = canvas.toDataURL('image/jpeg', 0.60);
             setImageUrl(compressed);
           }
         };
@@ -127,6 +128,11 @@ export const RunwayManager: React.FC<RunwayManagerProps> = ({
   const handleAddSlide = (e: React.FormEvent) => {
     e.preventDefault();
     if (!imageUrl.trim()) return;
+
+    if (slides.length >= 5) {
+      alert('Has alcanzado el límite máximo de 5 diapositivas. Por favor, elimina una antes de agregar otra para no exceder la memoria.');
+      return;
+    }
 
     const newSlide: RunwaySlide = {
       id: `runway-${Date.now()}`,

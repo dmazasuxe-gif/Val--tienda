@@ -272,3 +272,15 @@
   }
 }
 
+
+@keyframes promoMarquee {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.animate-promo-marquee {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: promoMarquee 15s linear infinite;
+}

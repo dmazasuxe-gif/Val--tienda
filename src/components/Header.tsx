@@ -134,24 +134,27 @@ export const Header: React.FC<HeaderProps> = ({
     'Envíos rápidos a todo el Perú'
   ];
 
+  if (settings.bannerNoticeActive && settings.bannerNotice) {
+    announcementItems.unshift(settings.bannerNotice);
+  }
+
+  // Duplicate items to create a seamless infinite scroll effect
+  const marqueeItems = [...announcementItems, ...announcementItems, ...announcementItems];
+
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-zinc-200 select-none">
+    <header className="sticky top-0 z-40 bg-white border-b border-zinc-200 select-none overflow-hidden">
       {/* Top Announcement Bar - Ticker Style */}
-      <div className="bg-[#f4f4f5] border-b border-zinc-200/80 py-1.5 px-3 text-[11px] text-zinc-700 overflow-hidden font-medium">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6 overflow-x-auto scrollbar-none whitespace-nowrap mx-auto">
-            {announcementItems.map((item, idx) => (
-              <React.Fragment key={idx}>
-                <span className="flex items-center gap-1.5 tracking-tight font-semibold">
-                  {idx === 0 && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />}
-                  {item}
-                </span>
-                {idx < announcementItems.length - 1 && (
-                  <span className="text-zinc-400 select-none">•</span>
-                )}
-              </React.Fragment>
-            ))}
-          </div>
+      <div className="bg-zinc-900 border-b border-zinc-950 py-1.5 px-3 text-[11px] text-zinc-200 overflow-hidden font-medium relative group flex">
+        <div className="animate-promo-marquee flex items-center gap-6 whitespace-nowrap min-w-max pr-6">
+          {marqueeItems.map((item, idx) => (
+            <React.Fragment key={idx}>
+              <span className="flex items-center gap-2 tracking-wide font-bold uppercase">
+                <Sparkles className="w-3 h-3 text-yellow-400" />
+                {item}
+              </span>
+              <span className="text-zinc-600 select-none px-2">•</span>
+            </React.Fragment>
+          ))}
         </div>
       </div>
 
