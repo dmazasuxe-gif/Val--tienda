@@ -25,29 +25,56 @@ export const ReceiptSettingsPanel: React.FC<ReceiptSettingsPanelProps> = ({ sett
   };
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const updateField = (field: keyof typeof rs, value: any) => {
     onChange({ receiptSettings: { ...rs, [field]: value } });
+  };
+
+  const compressImage = (file: File, maxWidth: number, callback: (url: string) => void) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', 0.8));
+        } else {
+          callback(e.target?.result as string);
+        }
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 1024 * 1024) {
-      alert("El logo es demasiado pesado. Por favor, sube una imagen de menos de 1MB.");
+    if (!file.type.startsWith('image/')) {
+      alert("Por favor, sube un archivo de imagen válido.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64String = event.target?.result as string;
-      updateField('logoUrl', base64String);
-    };
-    reader.onerror = () => {
-      alert("Error al leer el archivo. Intenta de nuevo.");
-    };
-    reader.readAsDataURL(file);
+    setIsUploading(true);
+    // Compress and resize for thermal printers (~380px is optimal)
+    compressImage(file, 380, (compressedUrl) => {
+      updateField('logoUrl', compressedUrl);
+      setIsUploading(false);
+    });
   };
 
   const handlePreview = () => {
@@ -180,7 +207,13 @@ export const ReceiptSettingsPanel: React.FC<ReceiptSettingsPanelProps> = ({ sett
         
         {/* Logo Upload */}
         <div className="sm:col-span-2 p-4 border border-dashed border-sky-300 bg-sky-50/50 rounded-2xl flex flex-col sm:flex-row items-center gap-4">
-          <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 bg-white border border-sky-100 rounded-xl flex items-center justify-center overflow-hidden shadow-sm">
+          <div className="relative w-24 h-24 sm:w-32 sm:h-32 shrink-0 bg-white border border-sky-100 rounded-xl flex items-center justify-center overflow-hidden shadow-sm">
+            {isUploading ? (
+              <div className="absolute inset-0 bg-white/80 z-10 flex flex-col items-center justify-center">
+                <div className="w-5 h-5 border-2 border-sky-200 border-t-sky-600 rounded-full animate-spin mb-1"></div>
+                <span className="text-[10px] text-sky-700 font-semibold">Procesando...</span>
+              </div>
+            ) : null}
             {rs.logoUrl ? (
               <img src={rs.logoUrl} alt="Logo Boleta" className="max-w-full max-h-full object-contain grayscale" />
             ) : (
@@ -194,7 +227,7 @@ export const ReceiptSettingsPanel: React.FC<ReceiptSettingsPanelProps> = ({ sett
           <div className="flex-1 space-y-2 text-center sm:text-left">
             <h4 className="font-bold text-slate-700">Logo del Ticket</h4>
             <p className="text-[10px] sm:text-[11px] text-slate-500">
-              Para un mejor resultado en impresoras térmicas, usa una imagen clara con buen contraste (preferible blanco y negro). Tamaño máximo: 1MB.
+              Para un mejor resultado en impresoras térmicas, el sistema optimizará tu imagen a blanco y negro con el ancho ideal (380px) automáticamente.
             </p>
             
             <input 
@@ -207,17 +240,19 @@ export const ReceiptSettingsPanel: React.FC<ReceiptSettingsPanelProps> = ({ sett
             
             <button
               type="button"
+              disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-sky-300 text-sky-700 font-bold rounded-xl shadow-xs hover:bg-sky-50 transition-colors cursor-pointer"
+              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-sky-300 text-sky-700 font-bold rounded-xl shadow-xs hover:bg-sky-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Upload className="w-4 h-4" />
-              Subir Logo
+              {rs.logoUrl ? 'Cambiar Logo' : 'Subir Logo'}
             </button>
             {rs.logoUrl && (
               <button
                 type="button"
+                disabled={isUploading}
                 onClick={() => updateField('logoUrl', '')}
-                className="mt-2 ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-rose-600 font-bold hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                className="mt-2 ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-rose-600 font-bold hover:bg-rose-50 rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Quitar
               </button>

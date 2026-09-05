@@ -1948,7 +1948,11 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
 
       <ReceiptSettingsPanel 
         settings={formData} 
-        onChange={(updated) => setFormData({ ...formData, ...updated })} 
+        onChange={(updated) => {
+          const newData = { ...formData, ...updated };
+          setFormData(newData);
+          onSaveSettings(newData);
+        }} 
       />
     </form>
   );
