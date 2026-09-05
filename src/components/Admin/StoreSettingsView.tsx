@@ -1879,9 +1879,6 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
             <span>11. Mensajes Predeterminados de WhatsApp</span>
           </h3>
         </div>
-        <p className="text-[11px] text-slate-500">
-          Personaliza los mensajes que se envían por WhatsApp. Utiliza variables como <code>{"{{storeName}}"}</code>, <code>{"{{orderNumber}}"}</code>, <code>{"{{customerName}}"}</code>, <code>{"{{customerPhone}}"}</code>, <code>{"{{address}}"}</code>, <code>{"{{itemsList}}"}</code>, <code>{"{{total}}"}</code>, <code>{"{{currencySymbol}}"}</code>, <code>{"{{paymentMethod}}"}</code>, <code>{"{{status}}"}</code>, <code>{"{{driverName}}"}</code>.
-        </p>
         
         <div className="grid grid-cols-1 gap-4">
           <div className="space-y-1.5">
@@ -1944,53 +1941,7 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
             />
 
           </div>
-          <div className="pt-6 mt-4 border-t border-sky-100 flex justify-end">
-            <button type="submit" className="px-6 py-2.5 bg-sky-900 hover:bg-sky-800 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer">
-              {savedSuccess ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span>Plantillas Guardadas</span>
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  <span>Guardar Plantillas</span>
-                </>
-              )}
-            </button>
-          </div>
         </div>
-      </div>
-
-
-
-      {/* Sticky Footer Bar for General Save */}
-      <div className="sticky bottom-4 z-40 p-4 sm:p-5 mt-8 rounded-3xl bg-slate-900/95 backdrop-blur-md border border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl">
-        <div className="text-white">
-          <h2 className="text-sm font-bold flex items-center gap-2">
-            <Save className="w-4 h-4 text-emerald-400" />
-            <span>Guardar Todos los Cambios</span>
-          </h2>
-          <p className="text-xs text-slate-300 mt-0.5">
-            Asegúrate de guardar si has modificado cualquier sección del administrador.
-          </p>
-        </div>
-        <button
-          type="submit"
-          className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-extrabold rounded-2xl text-sm shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-101 cursor-pointer uppercase tracking-wider"
-        >
-          {savedSuccess ? (
-            <>
-              <Check className="w-5 h-5 text-white font-bold" />
-              <span>¡Todo Guardado con Éxito!</span>
-            </>
-          ) : (
-            <>
-              <Save className="w-5 h-5" />
-              <span>Guardar Cambios del Administrador</span>
-            </>
-          )}
-        </button>
       </div>
     </form>
   );

@@ -217,8 +217,8 @@ export default function App() {
             }
             if (currentSettings.pushNotifications) {
               sendPushNotification(
-                `🛍️ Nuevo Pedido #${latestNewOrder.orderNumber}`,
-                `${latestNewOrder.customerName} ha ordenado ${notif.itemCount} productos por ${currentSettings.currencySymbol} ${latestNewOrder.total.toFixed(2)}`
+                `🛍️ NUEVO PEDIDO`,
+                `${latestNewOrder.customerName} ha comprado ${latestNewOrder.items.map(item => item.product.name).join(', ')} por ${currentSettings.currencySymbol} ${latestNewOrder.total.toFixed(2)}`
               );
             }
           }
@@ -512,8 +512,8 @@ export default function App() {
       }
       if (settings.pushNotifications) {
         sendPushNotification(
-          `🛍️ Nuevo Pedido #${newOrder.orderNumber}`,
-          `${newOrder.customerName} ha ordenado ${notif.itemCount} productos por ${settings.currencySymbol} ${newOrder.total.toFixed(2)}`
+          `🛍️ NUEVO PEDIDO`,
+          `${newOrder.customerName} ha comprado ${newOrder.items.map(item => item.product.name).join(', ')} por ${settings.currencySymbol} ${newOrder.total.toFixed(2)}`
         );
       }
     }
