@@ -29,28 +29,14 @@ export function subscribeToProducts(
   return onSnapshot(
     collRef,
     async (snapshot) => {
-      if (snapshot.empty) {
-        // If Firestore is empty on initial setup, seed it with fallback catalog
-        console.log('[Firestore] Seeding initial products to cloud...');
-        try {
-          const batch = writeBatch(db);
-          initialFallback.forEach((product) => {
-            const pRef = doc(db, PRODUCTS_COLL, product.id);
-            batch.set(pRef, product);
-          });
-          await batch.commit();
-          onUpdate(initialFallback);
-        } catch (err) {
-          console.warn('[Firestore] Error seeding initial products:', err);
-          onUpdate(initialFallback);
-        }
-      } else {
-        const cloudProducts: Product[] = [];
-        snapshot.forEach((docSnap) => {
-          cloudProducts.push(docSnap.data() as Product);
-        });
-        onUpdate(cloudProducts);
-      }
+      const cloudProducts: Product[] = [];
+      snapshot.forEach((docSnap) => {
+        cloudProducts.push(docSnap.data() as Product);
+      });
+      
+      // If it's completely empty, that means the user has deleted all products
+      // or hasn't created any yet. We just return the empty array.
+      onUpdate(cloudProducts);
     },
     (err) => {
       console.warn('[Firestore] Products subscription error, using local data:', err);

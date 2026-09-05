@@ -33,6 +33,7 @@ import {
   ExternalLink,
   Printer
 } from 'lucide-react';
+import { ReceiptSettingsPanel } from './ReceiptSettingsPanel';
 import { playNotificationChime, requestPushPermission, getPushPermissionStatus } from '../../utils/sound';
 
 interface StoreSettingsViewProps {
@@ -1945,103 +1946,10 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
         </div>
       </div>
 
-      {/* 12. Configuración de Boleta / Ticket de Impresora */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-white border border-sky-100 space-y-4 text-xs shadow-xs">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold uppercase tracking-wider text-slate-800 text-xs flex items-center gap-1.5">
-            <Printer className="w-4 h-4 text-slate-600" />
-            <span>12. Configuración de Boleta / Ticket de Impresora</span>
-          </h3>
-        </div>
-        <p className="text-[11px] text-slate-500">
-          Personaliza los datos que aparecerán al imprimir la boleta de venta en tu impresora ticketera.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1.5">RUC de la Empresa</label>
-            <input
-              type="text"
-              value={formData.receiptSettings?.ruc || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                receiptSettings: { ...(formData.receiptSettings || { legalName: '', address: '', phone: '', logoUrl: '', footerMessage: '' }), ruc: e.target.value }
-              })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-sky-200 rounded-2xl text-slate-900 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs"
-              placeholder="Ej: 20123456789"
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1.5">Razón Social o Nombre Legal</label>
-            <input
-              type="text"
-              value={formData.receiptSettings?.legalName || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                receiptSettings: { ...(formData.receiptSettings || { ruc: '', address: '', phone: '', logoUrl: '', footerMessage: '' }), legalName: e.target.value }
-              })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-sky-200 rounded-2xl text-slate-900 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs"
-              placeholder="Ej: AURA MODA & CALZADO S.A.C."
-            />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className="block text-slate-700 font-semibold mb-1.5">Dirección de la Tienda (Para el Ticket)</label>
-            <input
-              type="text"
-              value={formData.receiptSettings?.address || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                receiptSettings: { ...(formData.receiptSettings || { ruc: '', legalName: '', phone: '', logoUrl: '', footerMessage: '' }), address: e.target.value }
-              })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-sky-200 rounded-2xl text-slate-900 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs"
-              placeholder="Ej: Av. Principal 123, Ciudad, País"
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1.5">Teléfono (Para el Ticket)</label>
-            <input
-              type="text"
-              value={formData.receiptSettings?.phone || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                receiptSettings: { ...(formData.receiptSettings || { ruc: '', legalName: '', address: '', logoUrl: '', footerMessage: '' }), phone: e.target.value }
-              })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-sky-200 rounded-2xl text-slate-900 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs"
-              placeholder="Ej: +51 987 654 321"
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1.5">URL del Logo (Ticket) *Ideal en blanco y negro</label>
-            <input
-              type="text"
-              value={formData.receiptSettings?.logoUrl || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                receiptSettings: { ...(formData.receiptSettings || { ruc: '', legalName: '', address: '', phone: '', footerMessage: '' }), logoUrl: e.target.value }
-              })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-sky-200 rounded-2xl text-slate-900 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs"
-              placeholder="https://ejemplo.com/logo-bn.png"
-            />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className="block text-slate-700 font-semibold mb-1.5">Mensaje de Agradecimiento (Pie de página)</label>
-            <textarea
-              value={formData.receiptSettings?.footerMessage || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                receiptSettings: { ...(formData.receiptSettings || { ruc: '', legalName: '', address: '', phone: '', logoUrl: '' }), footerMessage: e.target.value }
-              })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-slate-700 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors resize-y min-h-[80px]"
-              placeholder="Ej: ¡Gracias por tu compra! Vuelve pronto."
-            />
-          </div>
-        </div>
-      </div>
+      <ReceiptSettingsPanel 
+        settings={formData} 
+        onChange={(updated) => setFormData({ ...formData, ...updated })} 
+      />
     </form>
   );
 };
