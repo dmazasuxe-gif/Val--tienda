@@ -146,11 +146,12 @@ export const Banner: React.FC<BannerProps> = ({
               }`}
             >
               {/* Background Runway Photograph with Cinematic Slow Zoom */}
+              {/* Main Image with object-cover */}
               <img
                 src={slide.imageUrl}
                 alt={slide.title || `Pasarela ${index + 1}`}
-                className={`w-full h-full object-cover object-center transition-transform duration-[6000ms] ease-out ${
-                  isActive ? 'scale-105' : 'scale-100'
+                className={`absolute inset-0 w-full h-full object-cover object-top sm:object-center transition-transform duration-[6000ms] ease-out ${ 
+                  isActive ? 'scale-105' : 'scale-100' 
                 }`}
                 referrerPolicy="no-referrer"
                 loading={index === 0 ? 'eager' : 'lazy'}

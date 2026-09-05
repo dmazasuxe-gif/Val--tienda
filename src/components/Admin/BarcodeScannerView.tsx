@@ -20,7 +20,8 @@ export const BarcodeScannerView: React.FC<BarcodeScannerViewProps> = ({
   const [unregisteredCode, setUnregisteredCode] = useState<string | null>(null);
   
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const isProcessingRef = useRef(false);
+  const lastScannedCodeRef = useRef<string | null>(null);
+  const lastScannedTimeRef = useRef<number>(0);
   const productsRef = useRef(products);
 
   // Mantener la referencia de productos actualizada para no reiniciar la cámara
@@ -51,10 +52,15 @@ export const BarcodeScannerView: React.FC<BarcodeScannerViewProps> = ({
             ]
           },
           (decodedText) => {
-            // Si ya estamos procesando un código, ignorar nuevos escaneos temporalmente
-            if (isProcessingRef.current) return;
-            
-            isProcessingRef.current = true;
+            const now = Date.now();
+            // Debouncer: Evitar lecturas duplicadas del mismo código en un lapso corto (2 segundos)
+            if (lastScannedCodeRef.current === decodedText && now - lastScannedTimeRef.current < 2000) {
+              return;
+            }
+
+            lastScannedCodeRef.current = decodedText;
+            lastScannedTimeRef.current = now;
+
             const existingProduct = productsRef.current.find(
               p => p.sku === decodedText || p.barcode === decodedText
             );
@@ -94,13 +100,10 @@ export const BarcodeScannerView: React.FC<BarcodeScannerViewProps> = ({
     };
   }, []); // Dependencias vacías para montar la cámara solo una vez
 
-  const handleScanAnother = () => {
+  const handleClear = () => {
     setScannedProduct(null);
     setUnregisteredCode(null);
-    // Pequeño retardo para evitar escanear el mismo código accidentalmente de inmediato
-    setTimeout(() => {
-      isProcessingRef.current = false;
-    }, 600);
+    lastScannedCodeRef.current = null;
   };
 
   return (
@@ -124,27 +127,9 @@ export const BarcodeScannerView: React.FC<BarcodeScannerViewProps> = ({
         <div className="space-y-6">
           {/* Cámara Container */}
           <div className="rounded-2xl overflow-hidden border-2 border-sky-100 shadow-inner bg-black relative w-full max-w-md mx-auto aspect-square sm:aspect-video flex items-center justify-center">
-            {/* Ocultamos el reader visualmente si ya hay un producto procesado, pero la cámara sigue prendida de fondo */}
-            <div 
-              id="reader" 
-              className={`w-full h-full [&>video]:object-cover [&>video]:w-full [&>video]:h-full transition-opacity duration-300 ${isProcessingRef.current ? 'opacity-20' : 'opacity-100'}`}
-            ></div>
-            
-            {/* Mensaje superpuesto de Escaneo Exitoso */}
-            {isProcessingRef.current && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6 space-y-4 z-10 pointer-events-none">
-                <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                  <Package className="w-8 h-8 text-white" />
-                </div>
-                <div className="space-y-1 text-center bg-slate-900/80 px-4 py-2 rounded-xl backdrop-blur-sm">
-                  <p className="text-sm text-emerald-300 font-bold uppercase tracking-wide">¡Detectado!</p>
-                  <p className="text-xl font-mono font-bold text-white">
-                    {scannedProduct ? scannedProduct.barcode || scannedProduct.sku : unregisteredCode}
-                  </p>
-                </div>
-              </div>
-            )}
+            <div id="reader" className="w-full h-full [&>video]:object-cover [&>video]:w-full [&>video]:h-full"></div>
           </div>
+
 
           {/* Información del Producto Registrado */}
           {scannedProduct && (
@@ -215,11 +200,11 @@ export const BarcodeScannerView: React.FC<BarcodeScannerViewProps> = ({
               </div>
 
               <button
-                onClick={handleScanAnother}
+                onClick={handleClear}
                 className="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span>Escanear Otro Producto</span>
+                <span>Limpiar Resultado</span>
               </button>
             </div>
           )}
@@ -239,7 +224,7 @@ export const BarcodeScannerView: React.FC<BarcodeScannerViewProps> = ({
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   onClick={() => {
-                    handleScanAnother();
+                    handleClear();
                     onOpenProductForm(unregisteredCode);
                   }}
                   className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
@@ -248,11 +233,11 @@ export const BarcodeScannerView: React.FC<BarcodeScannerViewProps> = ({
                   <span>Registrar Producto</span>
                 </button>
                 <button
-                  onClick={handleScanAnother}
+                  onClick={handleClear}
                   className="flex-1 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  <span>Volver a Escanear</span>
+                  <span>Limpiar</span>
                 </button>
               </div>
             </div>

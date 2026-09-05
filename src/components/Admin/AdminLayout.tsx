@@ -27,6 +27,7 @@ import { ReportsView } from './ReportsView';
 import { StockAlertsView } from './StockAlertsView';
 import { StoreSettingsView } from './StoreSettingsView';
 import { BarcodeScannerView } from './BarcodeScannerView';
+import { ImportProductsView } from './ImportProductsView';
 
 interface AdminLayoutProps {
   products: Product[];
@@ -43,7 +44,7 @@ interface AdminLayoutProps {
   onPreviewTracking?: (orderCode: string) => void;
 }
 
-type AdminTab = 'scanner' | 'products' | 'orders' | 'reports' | 'stock' | 'settings';
+type AdminTab = 'scanner' | 'products' | 'orders' | 'reports' | 'stock' | 'settings' | 'import';
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({
   products,
@@ -157,6 +158,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-t border-sky-100/80 pt-1">
           {[
             { id: 'scanner' as const, label: 'Lector de Códigos', icon: ScanLine },
+            { id: 'import' as const, label: 'Importación Masiva (Catálogos)', icon: TrendingUp },
             { id: 'products' as const, label: 'Productos & Catálogo', icon: Package, count: products.length },
             { id: 'orders' as const, label: 'Órdenes de Compra', icon: ShoppingBag, count: pendingOrdersCount, badgeColor: 'bg-amber-100 text-amber-800 border border-amber-200' },
             { id: 'reports' as const, label: 'Reportes Financieros (PDF/Excel)', icon: TrendingUp },
@@ -375,6 +377,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             settings={settings}
             onSaveSettings={onSaveSettings}
           />
+        )}
+
+        {/* Tab: Import */}
+        {activeTab === 'import' && (
+          <ImportProductsView />
         )}
 
       </main>
