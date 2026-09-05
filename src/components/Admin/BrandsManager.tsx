@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StoreSettings, StoreBrand } from '../../types';
 import { DEFAULT_STORE_BRANDS } from '../../data/initialData';
+import { BRAND_SVGS } from '../../data/brandLogos';
 import { 
   Sparkles, 
   Plus, 
@@ -31,42 +32,42 @@ const POPULAR_BRAND_PRESETS: Array<{ name: string; label: string; logoUrl: strin
   {
     name: 'Nike',
     label: 'NIKE',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg'
+    logoUrl: BRAND_SVGS.Nike
   },
   {
     name: 'Adidas',
     label: 'ADIDAS',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg'
+    logoUrl: BRAND_SVGS.Adidas
   },
   {
     name: 'Jordan',
     label: 'JORDAN',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/3/37/Jumpman_logo.svg'
+    logoUrl: BRAND_SVGS.Jordan
   },
   {
     name: 'Puma',
     label: 'PUMA',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/88/Puma_logo.svg'
+    logoUrl: BRAND_SVGS.Puma
   },
   {
     name: 'Reebok',
     label: 'REEBOK',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Reebok_2019_logo.svg'
+    logoUrl: BRAND_SVGS.Reebok
   },
   {
-    name: 'New Balance',
-    label: 'NEW BALANCE',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/New_Balance_logo.svg'
+    name: 'Lacoste',
+    label: 'LACOSTE',
+    logoUrl: BRAND_SVGS.Lacoste
   },
   {
-    name: 'Converse',
-    label: 'CONVERSE',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/30/Converse_logo.svg'
+    name: 'FILA',
+    label: 'FILA',
+    logoUrl: BRAND_SVGS.FILA
   },
   {
-    name: 'Vans',
-    label: 'VANS',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a0/Vans-logo.svg'
+    name: 'Joma',
+    label: 'JOMA',
+    logoUrl: BRAND_SVGS.Joma
   },
   {
     name: 'Under Armour',
@@ -353,28 +354,37 @@ export const BrandsManager: React.FC<BrandsManagerProps> = ({
         {/* Replica of BrandsStrip */}
         <div className="py-6 px-4 bg-zinc-50/70 border border-zinc-200 rounded-2xl overflow-x-auto scrollbar-none">
           <div className="flex items-center justify-around gap-8 min-w-max">
-            {brands.filter(b => b.isActive).map((brand) => (
+            {brands.filter(b => b.isActive).map((brand) => {
+              const effectiveLogo = (brand.logoUrl && !brand.logoUrl.includes('upload.wikimedia.org'))
+                ? brand.logoUrl
+                : (BRAND_SVGS[brand.name] || brand.logoUrl);
+
+              return (
               <div 
                 key={brand.id} 
                 className="flex flex-col items-center justify-center gap-1.5 group cursor-pointer transition-all hover:scale-105"
                 title={`Marca: ${brand.name}`}
               >
                 <div className="h-10 w-24 sm:w-28 flex items-center justify-center p-1 bg-white rounded-xl border border-zinc-200 shadow-2xs">
-                  {brand.logoUrl ? (
+                  {effectiveLogo ? (
                     <img
-                      src={brand.logoUrl}
+                      src={effectiveLogo}
                       alt={brand.name}
                       className="max-h-8 max-w-full object-contain filter grayscale group-hover:grayscale-0 contrast-125 transition-all duration-300"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        if (e.currentTarget.nextElementSibling) {
-                          (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block';
+                        if (BRAND_SVGS[brand.name] && e.currentTarget.src !== BRAND_SVGS[brand.name]) {
+                          e.currentTarget.src = BRAND_SVGS[brand.name];
+                        } else {
+                          e.currentTarget.style.display = 'none';
+                          if (e.currentTarget.nextElementSibling) {
+                            (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block';
+                          }
                         }
                       }}
                     />
                   ) : null}
-                  <span className={`${brand.logoUrl ? 'hidden' : 'block'} text-xs font-black tracking-tighter text-zinc-900 font-sans uppercase truncate`}>
+                  <span className={`${effectiveLogo ? 'hidden' : 'block'} text-xs font-black tracking-tighter text-zinc-900 font-sans uppercase truncate`}>
                     {brand.label || brand.name}
                   </span>
                 </div>
@@ -382,7 +392,7 @@ export const BrandsManager: React.FC<BrandsManagerProps> = ({
                   {brand.name}
                 </span>
               </div>
-            ))}
+            );})}
 
             {activeBrandsCount === 0 && (
               <div className="text-center py-4 text-xs text-zinc-400 font-medium w-full">
@@ -407,44 +417,56 @@ export const BrandsManager: React.FC<BrandsManagerProps> = ({
             >
               <div>
                 {/* Logo Preview Frame */}
-                <div className="relative aspect-video w-full rounded-2xl bg-gradient-to-br from-zinc-50 to-zinc-100 border border-zinc-200 flex items-center justify-center p-3 mb-3 overflow-hidden">
-                  {brand.logoUrl ? (
-                    <img
-                      src={brand.logoUrl}
-                      alt={brand.name}
-                      className="max-h-12 max-w-full object-contain filter drop-shadow-xs transition-transform hover:scale-110"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        if (e.currentTarget.nextElementSibling) {
-                          (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
-                        }
-                      }}
-                    />
-                  ) : null}
+                {(() => {
+                  const effectiveLogo = (brand.logoUrl && !brand.logoUrl.includes('upload.wikimedia.org'))
+                    ? brand.logoUrl
+                    : (BRAND_SVGS[brand.name] || brand.logoUrl);
 
-                  {/* Fallback box */}
-                  <div className={`${brand.logoUrl ? 'hidden' : 'flex'} flex-col items-center justify-center text-center p-2`}>
-                    <span className="text-sm font-black text-zinc-800 tracking-wider uppercase">
-                      {brand.label || brand.name}
-                    </span>
-                    <span className="text-[10px] text-zinc-400">Sin logo visual</span>
-                  </div>
+                  return (
+                    <div className="relative aspect-video w-full rounded-2xl bg-gradient-to-br from-zinc-50 to-zinc-100 border border-zinc-200 flex items-center justify-center p-3 mb-3 overflow-hidden">
+                      {effectiveLogo ? (
+                        <img
+                          src={effectiveLogo}
+                          alt={brand.name}
+                          className="max-h-12 max-w-full object-contain filter drop-shadow-xs transition-transform hover:scale-110"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            if (BRAND_SVGS[brand.name] && e.currentTarget.src !== BRAND_SVGS[brand.name]) {
+                              e.currentTarget.src = BRAND_SVGS[brand.name];
+                            } else {
+                              e.currentTarget.style.display = 'none';
+                              if (e.currentTarget.nextElementSibling) {
+                                (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                              }
+                            }
+                          }}
+                        />
+                      ) : null}
 
-                  {/* Badge position */}
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-black text-slate-700 border border-zinc-200 shadow-2xs">
-                    #{index + 1}
-                  </span>
+                      {/* Fallback box */}
+                      <div className={`${effectiveLogo ? 'hidden' : 'flex'} flex-col items-center justify-center text-center p-2`}>
+                        <span className="text-sm font-black text-zinc-800 tracking-wider uppercase">
+                          {brand.label || brand.name}
+                        </span>
+                        <span className="text-[10px] text-zinc-400">Sin logo visual</span>
+                      </div>
 
-                  {/* Active / Inactive Badge */}
-                  <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-bold border shadow-2xs ${
-                    brand.isActive 
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                      : 'bg-zinc-100 text-zinc-600 border-zinc-300'
-                  }`}>
-                    {brand.isActive ? 'Activo' : 'Oculto'}
-                  </span>
-                </div>
+                      {/* Badge position */}
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-black text-slate-700 border border-zinc-200 shadow-2xs">
+                        #{index + 1}
+                      </span>
+
+                      {/* Active / Inactive Badge */}
+                      <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-bold border shadow-2xs ${
+                        brand.isActive 
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                          : 'bg-zinc-100 text-zinc-600 border-zinc-300'
+                      }`}>
+                        {brand.isActive ? 'Activo' : 'Oculto'}
+                      </span>
+                    </div>
+                  );
+                })()}
 
                 {/* Brand Details */}
                 <div className="space-y-1">

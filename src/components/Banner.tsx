@@ -113,7 +113,7 @@ export const Banner: React.FC<BannerProps> = ({
         id="hero-banner-yolu"
       >
         {/* Cinematic Viewport Frame */}
-        <div className="relative w-full h-[320px] sm:h-[460px] md:h-[540px] overflow-hidden">
+        <div className="relative w-full h-[340px] sm:h-[460px] md:h-[520px] lg:h-[560px] overflow-hidden">
           
           {/* Slides Stack */}
           {slides.map((slide, index) => {
@@ -132,25 +132,27 @@ export const Banner: React.FC<BannerProps> = ({
                 <img
                   src={slide.imageUrl}
                   alt={slide.title || 'Pasarela Aura'}
-                  className="w-full h-full object-cover object-center block"
+                  className="w-full h-full object-cover object-center block select-none"
                   referrerPolicy="no-referrer"
+                  loading="eager"
+                  decoding="async"
                   onError={(e) => {
                     const target = e.currentTarget;
-                    if (!target.dataset.triedFallback && !slide.imageUrl.startsWith('data:')) {
+                    if (!target.dataset.triedFallback) {
                       target.dataset.triedFallback = 'true';
                       target.src = 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=1800&auto=format&fit=crop&q=85';
                     }
                   }}
                 />
 
-                {/* Dark Vignette / Gradient Overlay matching Screenshot 1 */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
+                {/* Refined Vignette / Gradient Overlay: Clear visibility of product photo with legible typography */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10 pointer-events-none" />
 
                 {/* Content Overlay matching Yolu Screenshots 1 & 2 */}
                 <div className="absolute bottom-6 sm:bottom-12 left-6 sm:left-12 max-w-xl text-left space-y-2 sm:space-y-3 z-10">
                   {/* Badge */}
                   {slide.badge && (
-                    <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-zinc-300 block drop-shadow-xs">
+                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[10px] sm:text-xs font-black uppercase tracking-widest text-white drop-shadow-xs">
                       {slide.badge}
                     </span>
                   )}
@@ -164,7 +166,7 @@ export const Banner: React.FC<BannerProps> = ({
 
                   {/* Subtitle / Teaser */}
                   {slide.subtitle && (
-                    <p className="text-xs sm:text-sm text-zinc-300 line-clamp-2 max-w-md drop-shadow-xs">
+                    <p className="text-xs sm:text-sm text-zinc-200 line-clamp-2 max-w-md drop-shadow-xs font-medium">
                       {slide.subtitle}
                     </p>
                   )}
@@ -189,30 +191,30 @@ export const Banner: React.FC<BannerProps> = ({
             <>
               <button
                 onClick={handlePrev}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-xs flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
+                className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-xs flex items-center justify-center transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100 z-20 cursor-pointer shadow-md"
                 aria-label="Slide anterior"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
               <button
                 onClick={handleNext}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-xs flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
+                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-xs flex items-center justify-center transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100 z-20 cursor-pointer shadow-md"
                 aria-label="Slide siguiente"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </>
           )}
 
           {/* Slide Indicator Dots */}
           {slides.length > 1 && (
-            <div className="absolute bottom-4 right-6 sm:right-12 z-20 flex items-center gap-1.5">
+            <div className="absolute bottom-4 right-6 sm:right-12 z-20 flex items-center gap-2">
               {slides.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentIndex(i)}
-                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                    i === currentIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                    i === currentIndex ? 'w-7 bg-white shadow-sm' : 'w-2 bg-white/50 hover:bg-white/80'
                   }`}
                   aria-label={`Ir al slide ${i + 1}`}
                 />

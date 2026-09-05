@@ -1,6 +1,7 @@
 import React from 'react';
 import { StoreSettings, StoreBrand } from '../types';
 import { DEFAULT_STORE_BRANDS } from '../data/initialData';
+import { BRAND_SVGS } from '../data/brandLogos';
 
 interface BrandsStripProps {
   settings?: StoreSettings;
@@ -38,6 +39,10 @@ export const BrandsStrip: React.FC<BrandsStripProps> = ({
         <div className="animate-brand-runway flex items-center gap-10 sm:gap-16 md:gap-20 py-2">
           {marqueeItems.map((brand, idx) => {
             const uniqueKey = `${brand.id || brand.name}-${idx}`;
+            const effectiveLogo = (brand.logoUrl && !brand.logoUrl.includes('upload.wikimedia.org'))
+              ? brand.logoUrl
+              : (BRAND_SVGS[brand.name] || brand.logoUrl);
+
             return (
               <button
                 key={uniqueKey}
@@ -46,16 +51,20 @@ export const BrandsStrip: React.FC<BrandsStripProps> = ({
                 className="flex items-center justify-center shrink-0 hover:scale-110 active:scale-95 transition-transform duration-300 cursor-pointer group px-3 py-1.5 focus:outline-none"
                 title={`Ver calzado y productos ${brand.name}`}
               >
-                {brand.logoUrl ? (
+                {effectiveLogo ? (
                   <img
-                    src={brand.logoUrl}
+                    src={effectiveLogo}
                     alt={brand.name}
-                    className="h-10 sm:h-12 md:h-14 max-w-[130px] sm:max-w-[160px] md:max-w-[190px] object-contain opacity-100 transition-all duration-300 pointer-events-none select-none"
+                    className="h-9 sm:h-11 md:h-13 max-w-[130px] sm:max-w-[160px] md:max-w-[190px] object-contain opacity-90 group-hover:opacity-100 transition-all duration-300 pointer-events-none select-none"
                     referrerPolicy="no-referrer"
                     onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      if (e.currentTarget.nextElementSibling) {
-                        (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'inline-block';
+                      if (BRAND_SVGS[brand.name] && e.currentTarget.src !== BRAND_SVGS[brand.name]) {
+                        e.currentTarget.src = BRAND_SVGS[brand.name];
+                      } else {
+                        e.currentTarget.style.display = 'none';
+                        if (e.currentTarget.nextElementSibling) {
+                          (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'inline-block';
+                        }
                       }
                     }}
                   />
@@ -64,7 +73,7 @@ export const BrandsStrip: React.FC<BrandsStripProps> = ({
                 {/* Text Fallback in crisp typography */}
                 <span
                   className={`${
-                    brand.logoUrl ? 'hidden' : 'inline-block'
+                    effectiveLogo ? 'hidden' : 'inline-block'
                   } text-lg sm:text-2xl font-black tracking-tight text-zinc-900 group-hover:text-black font-sans uppercase select-none`}
                 >
                   {brand.label || brand.name}

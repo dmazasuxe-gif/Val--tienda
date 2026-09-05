@@ -81,13 +81,47 @@ export const RunwayManager: React.FC<RunwayManagerProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setImageUrl(reader.result as string);
-        }
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 1100;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressed = canvas.toDataURL('image/jpeg', 0.70);
+            setImageUrl(compressed);
+          }
+        };
+        img.src = event.target?.result as string;
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleMakeCover = (slideId: string) => {
+    const target = slides.find(s => s.id === slideId);
+    if (!target) return;
+    const remaining = slides.filter(s => s.id !== slideId);
+    const updated = [target, ...remaining];
+    onSaveSettings({
+      ...settings,
+      runwaySlides: updated
+    });
+    notifySuccess();
   };
 
   const handleAddSlide = (e: React.FormEvent) => {
@@ -410,19 +444,31 @@ export const RunwayManager: React.FC<RunwayManagerProps> = ({
                     <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[9px] font-black">
                       #{index + 1}
                     </span>
+                    {index === 0 && (
+                      <span className="absolute bottom-0 inset-x-0 bg-amber-500 text-black text-[8px] font-black text-center py-0.5 tracking-tighter uppercase">
+                        PORTADA #1
+                      </span>
+                    )}
                   </div>
 
                   <div className="min-w-0">
-                    {slide.badge && (
-                      <span className="inline-block px-2 py-0.5 rounded-md bg-sky-100 text-sky-800 font-extrabold text-[9px] uppercase tracking-wider mb-0.5">
-                        {slide.badge}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                      {slide.badge && (
+                        <span className="inline-block px-2 py-0.5 rounded-md bg-sky-100 text-sky-800 font-extrabold text-[9px] uppercase tracking-wider">
+                          {slide.badge}
+                        </span>
+                      )}
+                      {index === 0 && (
+                        <span className="inline-block px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-black text-[9px] uppercase tracking-wider">
+                          ⭐ Portada Principal
+                        </span>
+                      )}
+                    </div>
                     <h4 className="font-bold text-slate-900 text-xs truncate">
                       {slide.title || "Fotografía de Pasarela"}
                     </h4>
                     <p className="text-[11px] text-slate-500 truncate max-w-xs">
-                      {slide.subtitle || slide.imageUrl}
+                      {slide.subtitle || (slide.imageUrl.startsWith('data:') ? 'Foto personalizada' : slide.imageUrl)}
                     </p>
                     {slide.linkCategory && slide.linkCategory !== 'all' && (
                       <span className="text-[10px] text-sky-600 font-semibold">
@@ -434,6 +480,18 @@ export const RunwayManager: React.FC<RunwayManagerProps> = ({
 
                 {/* Actions: Reorder & Delete */}
                 <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                  {index !== 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleMakeCover(slide.id)}
+                      className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs transition-colors cursor-pointer text-[10px] font-extrabold flex items-center gap-1"
+                      title="Fijar como la primera imagen que ven los clientes"
+                    >
+                      <span>⭐</span>
+                      <span className="hidden sm:inline">Hacer Portada</span>
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => handleMoveUp(index)}

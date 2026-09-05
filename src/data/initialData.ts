@@ -1,11 +1,12 @@
 import { Product, StoreSettings, Order, RunwaySlide, ShippingOption, Coupon, StoreBrand } from '../types';
+import { BRAND_SVGS } from './brandLogos';
 
 export const DEFAULT_STORE_BRANDS: StoreBrand[] = [
   {
     id: "brand-nike",
     name: "Nike",
     label: "NIKE",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg",
+    logoUrl: BRAND_SVGS.Nike,
     isActive: true,
     order: 1
   },
@@ -13,7 +14,7 @@ export const DEFAULT_STORE_BRANDS: StoreBrand[] = [
     id: "brand-adidas",
     name: "Adidas",
     label: "ADIDAS",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg",
+    logoUrl: BRAND_SVGS.Adidas,
     isActive: true,
     order: 2
   },
@@ -21,7 +22,7 @@ export const DEFAULT_STORE_BRANDS: StoreBrand[] = [
     id: "brand-jordan",
     name: "Jordan",
     label: "JORDAN",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/en/3/37/Jumpman_logo.svg",
+    logoUrl: BRAND_SVGS.Jordan,
     isActive: true,
     order: 3
   },
@@ -29,7 +30,7 @@ export const DEFAULT_STORE_BRANDS: StoreBrand[] = [
     id: "brand-puma",
     name: "Puma",
     label: "PUMA",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/8/88/Puma_logo.svg",
+    logoUrl: BRAND_SVGS.Puma,
     isActive: true,
     order: 4
   },
@@ -37,7 +38,7 @@ export const DEFAULT_STORE_BRANDS: StoreBrand[] = [
     id: "brand-reebok",
     name: "Reebok",
     label: "REEBOK",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/5/53/Reebok_2019_logo.svg",
+    logoUrl: BRAND_SVGS.Reebok,
     isActive: true,
     order: 5
   },
@@ -45,7 +46,7 @@ export const DEFAULT_STORE_BRANDS: StoreBrand[] = [
     id: "brand-lacoste",
     name: "Lacoste",
     label: "LACOSTE",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/1/1b/Lacoste_logo.svg",
+    logoUrl: BRAND_SVGS.Lacoste,
     isActive: true,
     order: 6
   },
@@ -53,7 +54,7 @@ export const DEFAULT_STORE_BRANDS: StoreBrand[] = [
     id: "brand-fila",
     name: "FILA",
     label: "FILA",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/8/86/Fila_logo.svg",
+    logoUrl: BRAND_SVGS.FILA,
     isActive: true,
     order: 7
   },
@@ -61,7 +62,7 @@ export const DEFAULT_STORE_BRANDS: StoreBrand[] = [
     id: "brand-joma",
     name: "Joma",
     label: "JOMA",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/f/f6/Joma_logo.svg",
+    logoUrl: BRAND_SVGS.Joma,
     isActive: true,
     order: 8
   }

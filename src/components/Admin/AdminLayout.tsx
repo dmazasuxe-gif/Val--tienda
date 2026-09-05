@@ -20,7 +20,8 @@ import {
   ShieldCheck,
   CheckCircle2,
   ScanLine,
-  Award
+  Award,
+  Image as ImageIcon
 } from 'lucide-react';
 import { ProductFormModal } from './ProductFormModal';
 import { OrderManager } from './OrderManager';
@@ -29,6 +30,7 @@ import { StockAlertsView } from './StockAlertsView';
 import { StoreSettingsView } from './StoreSettingsView';
 import { BarcodeScannerView } from './BarcodeScannerView';
 import { BrandsManager } from './BrandsManager';
+import { RunwayManager } from './RunwayManager';
 
 interface AdminLayoutProps {
   products: Product[];
@@ -47,7 +49,7 @@ interface AdminLayoutProps {
   onTabChange?: (tab: AdminTab) => void;
 }
 
-type AdminTab = 'scanner' | 'products' | 'orders' | 'reports' | 'stock' | 'brands' | 'settings';
+type AdminTab = 'scanner' | 'products' | 'orders' | 'reports' | 'stock' | 'runway' | 'brands' | 'settings';
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({
   products,
@@ -178,6 +180,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             { id: 'orders' as const, label: 'Órdenes de Compra', icon: ShoppingBag, count: pendingOrdersCount, badgeColor: 'bg-amber-100 text-amber-800 border border-amber-200' },
             { id: 'reports' as const, label: 'Reportes Financieros (PDF/Excel)', icon: TrendingUp },
             { id: 'stock' as const, label: 'Alertas de Stock', icon: AlertTriangle, count: lowStockCount, badgeColor: 'bg-rose-100 text-rose-700 border border-rose-200' },
+            { id: 'runway' as const, label: 'Pasarela de Imágenes', icon: ImageIcon, count: (settings.runwaySlides && settings.runwaySlides.length > 0) ? settings.runwaySlides.length : 2, badgeColor: 'bg-indigo-100 text-indigo-800 border border-indigo-200' },
             { id: 'brands' as const, label: 'Pasarela de Marcas', icon: Award, count: (settings.brands && settings.brands.length > 0) ? settings.brands.filter(b => b.isActive).length : 8, badgeColor: 'bg-emerald-100 text-emerald-800 border border-emerald-200' },
             { id: 'settings' as const, label: 'Configuración Tienda & WhatsApp', icon: SettingsIcon }
           ].map((tab) => {
@@ -384,6 +387,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             products={products}
             onOpenProductForm={(barcode) => handleOpenNewProduct(barcode)}
             onEditProduct={(p) => handleEditProduct(p)}
+          />
+        )}
+
+        {/* Tab: Runway Showcase Manager (Pasarela de Imágenes de Tienda) */}
+        {activeTab === 'runway' && (
+          <RunwayManager
+            settings={settings}
+            onSaveSettings={onSaveSettings}
           />
         )}
 
