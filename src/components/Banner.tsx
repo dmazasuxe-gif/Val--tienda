@@ -44,11 +44,14 @@ export const Banner: React.FC<BannerProps> = ({
   onExploreCategory, 
   onShopNow 
 }) => {
-  const slides: RunwaySlide[] = (settings.runwaySlides && settings.runwaySlides.length > 0)
-    ? settings.runwaySlides
-    : DEFAULT_RUNWAY_SLIDES;
+  // Filter out any broken or empty slides
+  const validSlides = (settings.runwaySlides || []).filter(
+    (s) => s && typeof s.imageUrl === 'string' && s.imageUrl.trim().length > 0
+  );
+  const slides: RunwaySlide[] = validSlides.length > 0 ? validSlides : DEFAULT_RUNWAY_SLIDES;
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
@@ -66,12 +69,12 @@ export const Banner: React.FC<BannerProps> = ({
   }, [slides.length]);
 
   useEffect(() => {
-    if (slides.length <= 1) return;
+    if (slides.length <= 1 || isPaused) return;
     const interval = setInterval(() => {
       handleNext();
     }, 5500);
     return () => clearInterval(interval);
-  }, [slides.length, handleNext]);
+  }, [slides.length, handleNext, isPaused]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -100,15 +103,17 @@ export const Banner: React.FC<BannerProps> = ({
   if (!slides || slides.length === 0) return null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-2">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-2" id="section-pasarela-imagenes">
       <div 
-        className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-black select-none group"
+        className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-zinc-950 select-none group shadow-lg shadow-zinc-950/10"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
         id="hero-banner-yolu"
       >
         {/* Cinematic Viewport Frame */}
-        <div className="relative w-full h-[320px] xs:h-[380px] sm:h-[460px] md:h-[540px] overflow-hidden">
+        <div className="relative w-full h-[320px] sm:h-[460px] md:h-[540px] overflow-hidden">
           
           {/* Slides Stack */}
           {slides.map((slide, index) => {
@@ -126,29 +131,40 @@ export const Banner: React.FC<BannerProps> = ({
                 {/* Background Hero Image */}
                 <img
                   src={slide.imageUrl}
-                  alt={slide.title}
+                  alt={slide.title || 'Pasarela Aura'}
                   className="w-full h-full object-cover object-center"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.dataset.triedFallback) {
+                      target.dataset.triedFallback = 'true';
+                      target.src = 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=1800&auto=format&fit=crop&q=85';
+                    }
+                  }}
                 />
 
                 {/* Dark Vignette / Gradient Overlay matching Screenshot 1 */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none" />
 
                 {/* Content Overlay matching Yolu Screenshots 1 & 2 */}
-                <div className="absolute bottom-6 sm:bottom-12 left-6 sm:left-12 max-w-xl text-left space-y-2 sm:space-y-3">
+                <div className="absolute bottom-6 sm:bottom-12 left-6 sm:left-12 max-w-xl text-left space-y-2 sm:space-y-3 z-10">
                   {/* Badge */}
-                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-zinc-300 block">
-                    {slide.badge || 'RECIÉN LLEGADO'}
-                  </span>
+                  {slide.badge && (
+                    <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-zinc-300 block drop-shadow-xs">
+                      {slide.badge}
+                    </span>
+                  )}
 
                   {/* Big Bold Headline */}
-                  <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none whitespace-pre-line font-sans">
-                    {slide.title}
-                  </h1>
+                  {slide.title && (
+                    <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none whitespace-pre-line font-sans drop-shadow-md">
+                      {slide.title}
+                    </h1>
+                  )}
 
                   {/* Subtitle / Teaser */}
                   {slide.subtitle && (
-                    <p className="text-xs sm:text-sm text-zinc-300 line-clamp-2 max-w-md">
+                    <p className="text-xs sm:text-sm text-zinc-300 line-clamp-2 max-w-md drop-shadow-xs">
                       {slide.subtitle}
                     </p>
                   )}

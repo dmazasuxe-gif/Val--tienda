@@ -217,15 +217,23 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          // Always convert to high-definition optimized JPEG (0.80 quality)
-          // Keeps resolution pristine (1280px max) while reducing file size from 2MB to ~70KB-110KB
-          // This guarantees it will NEVER exceed Firestore 1MB document limit or localStorage quota!
+          // High-definition JPEG at 0.80 keeps file at ~60-90KB while looking crystal clear
           callback(canvas.toDataURL('image/jpeg', 0.80));
+        } else if (typeof e.target?.result === 'string') {
+          callback(e.target.result);
+        }
+      };
+      img.onerror = () => {
+        if (typeof e.target?.result === 'string') {
+          callback(e.target.result);
         }
       };
       if (typeof e.target?.result === 'string') {
         img.src = e.target.result;
       }
+    };
+    reader.onerror = () => {
+      console.warn('Error reading image file');
     };
     reader.readAsDataURL(file);
   };
@@ -241,8 +249,8 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
         const newSlide: RunwaySlide = {
           id: `runway-${Date.now()}`,
           imageUrl: compressedUrl,
-          title: newRunwayTitle.trim() || undefined,
-          subtitle: newRunwaySubtitle.trim() || undefined,
+          title: newRunwayTitle.trim() || 'AURA MODA & CALZADO',
+          subtitle: newRunwaySubtitle.trim() || 'Nueva Colección y Tendencias Exclusivas',
           badge: newRunwayBadge.trim() || 'NUEVA COLECCIÓN'
         };
         const updated = { ...formData, runwaySlides: [newSlide, ...currentSlides] };
@@ -260,8 +268,8 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
     const newSlide: RunwaySlide = {
       id: `runway-${Date.now()}`,
       imageUrl: newRunwayUrl.trim(),
-      title: newRunwayTitle.trim() || undefined,
-      subtitle: newRunwaySubtitle.trim() || undefined,
+      title: newRunwayTitle.trim() || 'AURA MODA & CALZADO',
+      subtitle: newRunwaySubtitle.trim() || 'Nueva Colección y Tendencias Exclusivas',
       badge: newRunwayBadge.trim() || 'NUEVA COLECCIÓN'
     };
     // Add to beginning of slides so it is immediately visible
@@ -290,12 +298,13 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
 
   const handleClearDemoSlides = () => {
     if (window.confirm('¿Deseas remover las imágenes de muestra predeterminadas para dejar solo tus propias fotografías en la pasarela?')) {
-      const userUploaded = (formData.runwaySlides || []).filter(s => s.imageUrl.startsWith('data:') || s.id.startsWith('runway-custom-'));
-      if (userUploaded.length === 0) {
+      const isDemoSlide = (id: string) => id === 'runway-1' || id === 'runway-2' || id === 'runway-3' || id === 'runway-4';
+      const userCustom = (formData.runwaySlides || []).filter(s => !isDemoSlide(s.id));
+      if (userCustom.length === 0) {
         alert('Aún no has subido fotografías propias. Sube primero una foto desde tu celular o PC antes de limpiar las de muestra.');
         return;
       }
-      const updated = { ...formData, runwaySlides: userUploaded };
+      const updated = { ...formData, runwaySlides: userCustom };
       setFormData(updated);
       onSaveSettings(updated);
       setRunwayUploadFeedback('✅ Se limpiaron las fotos de muestra. Ahora solo se muestran tus fotos subidas.');
@@ -508,8 +517,8 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
         const newSlide: RunwaySlide = {
           id: `runway-${Date.now()}`,
           imageUrl: newRunwayUrl.trim(),
-          title: newRunwayTitle.trim() || undefined,
-          subtitle: newRunwaySubtitle.trim() || undefined,
+          title: newRunwayTitle.trim() || 'AURA MODA & CALZADO',
+          subtitle: newRunwaySubtitle.trim() || 'Nueva Colección y Tendencias Exclusivas',
           badge: newRunwayBadge.trim() || 'NUEVA COLECCIÓN'
         };
         finalSettings = {
@@ -1882,14 +1891,25 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
             />
           </label>
 
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-slate-500 font-semibold shrink-0">O pega una URL de imagen:</span>
+            <input
+              type="url"
+              placeholder="https://images.unsplash.com/... o enlace de tu imagen"
+              value={newRunwayUrl.startsWith('data:') ? '' : newRunwayUrl}
+              onChange={(e) => setNewRunwayUrl(e.target.value)}
+              className="w-full px-3 py-1.5 bg-white border border-sky-200 rounded-xl text-slate-900 text-xs focus:border-sky-500 focus:outline-none"
+            />
+          </div>
+
           {newRunwayUrl && (
             <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-sky-200">
               <div className="w-28 h-16 rounded-lg overflow-hidden border border-sky-300 bg-black shrink-0">
                 <img src={newRunwayUrl} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="text-[11px] text-slate-600 min-w-0">
-                <p className="font-bold text-emerald-700">✓ Fotografía cargada</p>
-                <p className="text-[10px] text-slate-500 truncate">Puedes personalizar título o etiqueta abajo y guardarla.</p>
+                <p className="font-bold text-emerald-700">✓ Fotografía seleccionada</p>
+                <p className="text-[10px] text-slate-500 truncate">Haz clic en &quot;Añadir como Portada Principal&quot; para fijarla en la pasarela.</p>
               </div>
             </div>
           )}

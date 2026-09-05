@@ -187,12 +187,40 @@ export async function syncDeleteOrder(orderId: string): Promise<void> {
 }
 
 /**
+ * Recursively cleans an object before writing to Firestore:
+ * - Drops any keys with `undefined` values (which trigger fatal Firestore errors)
+ * - Sanitizes nested objects and arrays
+ */
+export function cleanFirestoreData<T>(obj: T): T {
+  if (obj === null || obj === undefined) {
+    return null as unknown as T;
+  }
+  if (Array.isArray(obj)) {
+    return obj
+      .filter((item) => item !== undefined)
+      .map((item) => cleanFirestoreData(item)) as unknown as T;
+  }
+  if (typeof obj === 'object') {
+    const cleaned: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = cleanFirestoreData(value);
+      }
+    }
+    return cleaned as T;
+  }
+  return obj;
+}
+
+/**
  * Cloud Operations for Store Settings & Coupons
  */
 export async function syncSaveStoreSettings(settings: StoreSettings): Promise<void> {
   try {
     const docRef = doc(db, SETTINGS_COLL, GENERAL_SETTINGS_DOC);
-    await setDoc(docRef, settings, { merge: true });
+    const cleaned = cleanFirestoreData(settings);
+    await setDoc(docRef, cleaned, { merge: true });
+    console.log('[Firestore] Store settings successfully synced to cloud.');
   } catch (err) {
     console.warn('[Firestore] Error saving store settings:', err);
   }
