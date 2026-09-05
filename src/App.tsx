@@ -54,6 +54,7 @@ import { CheckoutModal } from './components/CheckoutModal';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { NotificationToast } from './components/NotificationToast';
 import { OrderTrackingModal } from './components/OrderTrackingModal';
+import { OrderValidationModal } from './components/OrderValidationModal';
 
 // Admin Components
 import { AdminLayout } from './components/Admin/AdminLayout';
@@ -145,6 +146,8 @@ export default function App() {
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [trackingModalOpen, setTrackingModalOpen] = useState(false);
+  const [validationModalOpen, setValidationModalOpen] = useState(false);
+  const [receiptOrderCode, setReceiptOrderCode] = useState('');
   const [trackedOrderCode, setTrackedOrderCode] = useState<string>(() => getLastTrackedCode());
   const [adminLoginModalOpen, setAdminLoginModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -236,14 +239,20 @@ export default function App() {
       saveStoredSettings(cloudSettings);
     }, getStoredSettings());
 
-    // 4. Check for URL parameters (like ?track=ORDER-CODE from QR scans)
+    // 4. Check for URL parameters (like ?track=ORDER-CODE or ?receipt=ORDER-CODE from QR scans)
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
       const trackCode = searchParams.get('track');
+      const receiptCode = searchParams.get('receipt');
+      
       if (trackCode) {
         setTrackedOrderCode(trackCode);
         setTrackingModalOpen(true);
         // Clean URL to avoid reopening on refresh
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (receiptCode) {
+        setReceiptOrderCode(receiptCode);
+        setValidationModalOpen(true);
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
@@ -1036,6 +1045,15 @@ export default function App() {
         onClose={() => setTrackingModalOpen(false)}
         orders={orders}
         initialOrderCode={trackedOrderCode}
+        settings={settings}
+      />
+
+      {/* Order Validation Modal (from Receipt QR) */}
+      <OrderValidationModal
+        isOpen={validationModalOpen}
+        onClose={() => setValidationModalOpen(false)}
+        orders={orders}
+        receiptOrderCode={receiptOrderCode}
         settings={settings}
       />
 

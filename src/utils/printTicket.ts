@@ -30,9 +30,9 @@ export const printTicket = (order: Order, settings: StoreSettings) => {
     baseFontSize = '14px'; smallFontSize = '12px'; largeFontSize = '18px';
   }
 
-  // Generate QR Code URL to the tracking page
-  const trackingUrl = `${window.location.origin}/?track=${order.orderNumber}`;
-  const qrCodeImg = `https://quickchart.io/qr?text=${encodeURIComponent(trackingUrl)}&size=120&margin=1`;
+  // Generate QR Code URL to the validation page
+  const receiptUrl = `${window.location.origin}/?receipt=${order.orderNumber}`;
+  const qrCodeImg = `https://quickchart.io/qr?text=${encodeURIComponent(receiptUrl)}&size=120&margin=1`;
 
   const html = `
     <!DOCTYPE html>
