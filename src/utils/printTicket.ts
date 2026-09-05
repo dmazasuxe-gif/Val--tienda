@@ -17,13 +17,6 @@ export const printTicket = (order: Order, settings: StoreSettings) => {
   // Calculate totals
   const totalItems = order.items.reduce((acc, i) => acc + i.quantity, 0);
 
-  const printWindow = window.open('', 'PRINT', 'height=600,width=400');
-  
-  if (!printWindow) {
-    alert("No se pudo abrir la ventana de impresión. Verifique los bloqueadores de pop-ups.");
-    return;
-  }
-
   const html = `
     <!DOCTYPE html>
     <html>
@@ -148,21 +141,39 @@ export const printTicket = (order: Order, settings: StoreSettings) => {
         ${rs?.footerMessage ? `<p>${rs.footerMessage.replace(/\\n/g, '<br>')}</p>` : `<p>¡Gracias por su compra!</p>`}
         <p class="text-sm" style="margin-top:15px; color: #555;">Documento sin valor fiscal</p>
       </div>
-      
-      <script>
-        window.onload = function() {
-          window.focus();
-          // Timeout to ensure resources (like the logo) are loaded before printing
-          setTimeout(function() {
-            window.print();
-            window.close();
-          }, 500);
-        }
-      </script>
     </body>
     </html>
   `;
 
-  printWindow.document.write(html);
-  printWindow.document.close();
+  // Use a hidden iframe to print without opening a new popup tab
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  
+  document.body.appendChild(iframe);
+  
+  const iframeDoc = iframe.contentWindow?.document;
+  if (iframeDoc) {
+    iframeDoc.open();
+    iframeDoc.write(html);
+    iframeDoc.close();
+
+    // Wait a brief moment to ensure images load before calling print
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      
+      // Remove iframe after printing to clean up DOM
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    }, 500);
+  } else {
+    document.body.removeChild(iframe);
+    alert("No se pudo iniciar la impresión.");
+  }
 };
