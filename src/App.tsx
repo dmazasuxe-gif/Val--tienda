@@ -45,6 +45,10 @@ import {
 // Public Components
 import { Header } from './components/Header';
 import { Banner } from './components/Banner';
+import { BrandsStrip } from './components/BrandsStrip';
+import { LiquidationSection } from './components/LiquidationSection';
+import { CategoryCardsSection } from './components/CategoryCardsSection';
+import { ProductCarouselSection } from './components/ProductCarouselSection';
 import { CategoryFilterBar } from './components/CategoryFilterBar';
 import { ProductCard } from './components/ProductCard';
 import { ProductDetailModal } from './components/ProductDetailModal';
@@ -615,8 +619,25 @@ export default function App() {
     setViewMode('store');
   };
 
+  const menProducts = useMemo(() => {
+    return products.filter((p) => p.gender === 'varones' || p.gender === 'unisex');
+  }, [products]);
+
+  const womenProducts = useMemo(() => {
+    return products.filter((p) => p.gender === 'mujeres' || p.gender === 'unisex');
+  }, [products]);
+
+  const isHomeView = 
+    selectedCategory === 'all' && 
+    selectedGender === 'all' && 
+    !searchQuery && 
+    !filters.onSaleOnly && 
+    filters.selectedSizes.length === 0 && 
+    filters.selectedColors.length === 0 && 
+    filters.selectedBrands.length === 0;
+
   return (
-    <div className="min-h-screen bg-sky-50/40 text-slate-900 flex flex-col font-sans selection:bg-sky-500 selection:text-white">
+    <div className="min-h-screen bg-[#fafafa] text-zinc-900 flex flex-col font-sans selection:bg-black selection:text-white">
       
       {/* If in Dedicated Admin / ERP Subdomain Mode */}
       {viewMode === 'admin' ? (
@@ -654,6 +675,8 @@ export default function App() {
             onOpenCart={() => setCartDrawerOpen(true)}
             isAdmin={isAdminLoggedIn}
             showAdminButton={false}
+            currentCategory={selectedCategory}
+            currentGender={selectedGender}
             onOpenAdminAuth={() => setAdminLoginModalOpen(true)}
             onOpenAdminPanel={() => setViewMode('admin')}
             onOpenAdmin={() => {
@@ -666,108 +689,161 @@ export default function App() {
             onSelectCategoryFilter={(cat, gen) => {
               setSelectedCategory(cat);
               setSelectedGender(gen);
+              setCurrentPage(1);
+            }}
+            onSelectSpecialFilter={(type) => {
+              if (type === 'nuevo') {
+                setSelectedCategory('all');
+                setSelectedGender('all');
+                setFilters((prev) => ({ ...prev, onSaleOnly: false }));
+                setCurrentPage(1);
+              } else if (type === 'sale') {
+                setFilters((prev) => ({ ...prev, onSaleOnly: true }));
+                setCurrentPage(1);
+              }
             }}
             onOpenTracking={() => handleOpenTracking()}
             cartBounceTrigger={cartBounceTrigger}
           />
 
-          {/* Promotional Banner Carousel / Hero */}
-          <Banner
-            settings={settings}
-            onExploreCategory={(cat, gen) => {
-              setSelectedCategory(cat);
-              if (gen) setSelectedGender(gen);
-            }}
-            onShopNow={(cat, gen) => {
-              setSelectedCategory(cat);
-              setSelectedGender(gen);
-            }}
-            onOpenSale={() => {
-              setFilters((prev) => ({ ...prev, onSaleOnly: true }));
-            }}
-          />
+          {/* If on Home View: Hero Runway Banner + EN LIQUIDACIÓN + CATEGORÍAS 3-Card + Carousels + Brands */}
+          {isHomeView && (
+            <>
+              {/* Promotional Banner Carousel / Hero */}
+              <Banner
+                settings={settings}
+                onExploreCategory={(cat, gen) => {
+                  setSelectedCategory(cat);
+                  if (gen) setSelectedGender(gen);
+                  setCurrentPage(1);
+                }}
+                onShopNow={(cat, gen) => {
+                  setSelectedCategory(cat);
+                  setSelectedGender(gen);
+                  setCurrentPage(1);
+                }}
+                onOpenSale={() => {
+                  setFilters((prev) => ({ ...prev, onSaleOnly: true }));
+                  setCurrentPage(1);
+                }}
+              />
 
-          {/* Dynamic Category & Gender Filter Bar */}
-          <CategoryFilterBar
-            currentCategory={selectedCategory}
-            selectedCategory={selectedCategory}
-            currentGender={selectedGender}
-            selectedGender={selectedGender}
-            onSelect={(cat, gen) => {
-              setSelectedCategory(cat);
-              setSelectedGender(gen);
-            }}
-            onSelectCategory={setSelectedCategory}
-            onSelectGender={setSelectedGender}
-            onOpenFilterDrawer={() => setFilterDrawerOpen(true)}
-            onOpenFilters={() => setFilterDrawerOpen(true)}
-            activeFilterCount={
-              filters.selectedSizes.length +
-              filters.selectedColors.length +
-              filters.selectedBrands.length +
-              (filters.onSaleOnly ? 1 : 0) +
-              (filters.inStockOnly ? 1 : 0)
-            }
-            activeFiltersCount={
-              filters.selectedSizes.length +
-              filters.selectedColors.length +
-              filters.selectedBrands.length +
-              (filters.onSaleOnly ? 1 : 0) +
-              (filters.inStockOnly ? 1 : 0)
-            }
-            totalProductsCount={filteredProducts.length}
-            sortBy={filters.sortBy}
-            onSortChange={(sort) => setFilters((prev) => ({ ...prev, sortBy: sort }))}
-          />
+              {/* EN LIQUIDACIÓN Section */}
+              <LiquidationSection
+                products={products}
+                settings={settings}
+                onOpenProduct={(p) => setSelectedProduct(p)}
+                onViewAllDiscounts={() => {
+                  setFilters((prev) => ({ ...prev, onSaleOnly: true }));
+                  setCurrentPage(1);
+                }}
+              />
+
+              {/* CATEGORÍAS 3-Card Section */}
+              <CategoryCardsSection
+                onSelectCategory={(cat, gen) => {
+                  setSelectedCategory(cat);
+                  setSelectedGender(gen);
+                  setCurrentPage(1);
+                }}
+              />
+
+              {/* CATÁLOGO HOMBRE Carousel */}
+              <ProductCarouselSection
+                title="CATÁLOGO HOMBRE"
+                products={menProducts}
+                settings={settings}
+                onOpenProduct={(p) => setSelectedProduct(p)}
+                onViewAll={() => {
+                  setSelectedCategory('all');
+                  setSelectedGender('varones');
+                  setCurrentPage(1);
+                }}
+              />
+
+              {/* CATÁLOGO MUJER Carousel */}
+              <ProductCarouselSection
+                title="CATÁLOGO MUJER"
+                products={womenProducts}
+                settings={settings}
+                onOpenProduct={(p) => setSelectedProduct(p)}
+                onViewAll={() => {
+                  setSelectedCategory('all');
+                  setSelectedGender('mujeres');
+                  setCurrentPage(1);
+                }}
+              />
+
+              {/* Brands Strip */}
+              <BrandsStrip
+                settings={settings}
+                onSelectBrand={(brand) => {
+                  setFilters((prev) => ({ ...prev, selectedBrands: [brand] }));
+                  setCurrentPage(1);
+                }}
+              />
+            </>
+          )}
 
           {/* Main Catalog Grid */}
-          <main ref={productsSectionRef} className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6">
+          <main ref={productsSectionRef} className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
             
-            {/* Catalog Section Header */}
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <div>
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 font-['Playfair_Display',serif] tracking-tight">
-                  {selectedCategory === 'all' && selectedGender === 'all'
-                    ? 'Colección Destacada'
-                    : selectedCategory === 'calzado'
-                    ? `Calzado ${selectedGender !== 'all' ? `para ${selectedGender}` : ''}`
-                    : `Ropa & Moda ${selectedGender !== 'all' ? `para ${selectedGender}` : ''}`}
-                </h2>
-                <p className="text-xs text-slate-600 font-medium">
-                  Mostrando <strong className="text-sky-800 font-bold">{totalProducts > 0 ? `${startIndex + 1} - ${endIndex}` : '0'}</strong> de <strong className="text-slate-900 font-bold">{totalProducts}</strong> productos {totalPages > 1 && <span className="text-slate-500">(Página {safeCurrentPage} de {totalPages})</span>}
-                </p>
-              </div>
-
-              {/* Reset filters shortcut if filtered */}
-              {(selectedCategory !== 'all' ||
-                selectedGender !== 'all' ||
-                searchQuery ||
-                filters.selectedSizes.length > 0 ||
-                filters.selectedColors.length > 0) && (
-                <button
-                  onClick={() => {
-                    setSelectedCategory('all');
-                    setSelectedGender('all');
-                    setSearchQuery('');
-                    setFilters(INITIAL_FILTERS);
-                  }}
-                  className="text-xs text-sky-600 hover:text-sky-800 font-bold underline flex items-center gap-1 cursor-pointer"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  <span>Restablecer Todo</span>
-                </button>
-              )}
-            </div>
+            {/* Dynamic Category & Gender Filter Bar matching Yolu Screenshots 5 & 6 */}
+            <CategoryFilterBar
+              currentCategory={selectedCategory}
+              selectedCategory={selectedCategory}
+              currentGender={selectedGender}
+              selectedGender={selectedGender}
+              onSelect={(cat, gen) => {
+                setSelectedCategory(cat);
+                setSelectedGender(gen);
+                setCurrentPage(1);
+              }}
+              onSelectCategory={(c) => {
+                setSelectedCategory(c);
+                setCurrentPage(1);
+              }}
+              onSelectGender={(g) => {
+                setSelectedGender(g);
+                setCurrentPage(1);
+              }}
+              onOpenFilterDrawer={() => setFilterDrawerOpen(true)}
+              onOpenFilters={() => setFilterDrawerOpen(true)}
+              activeFilterCount={
+                filters.selectedSizes.length +
+                filters.selectedColors.length +
+                filters.selectedBrands.length +
+                (filters.onSaleOnly ? 1 : 0) +
+                (filters.inStockOnly ? 1 : 0)
+              }
+              activeFiltersCount={
+                filters.selectedSizes.length +
+                filters.selectedColors.length +
+                filters.selectedBrands.length +
+                (filters.onSaleOnly ? 1 : 0) +
+                (filters.inStockOnly ? 1 : 0)
+              }
+              totalProductsCount={filteredProducts.length}
+              sortBy={filters.sortBy}
+              onSortChange={(sort) => setFilters((prev) => ({ ...prev, sortBy: sort }))}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(sz) => {
+                setItemsPerPage(sz);
+                setCurrentPage(1);
+              }}
+              startIndex={startIndex}
+              endIndex={endIndex}
+            />
 
             {/* Products Grid */}
             {filteredProducts.length === 0 ? (
-              <div className="py-16 text-center bg-white rounded-3xl border border-sky-100 shadow-sm p-8 space-y-4 max-w-lg mx-auto">
-                <div className="w-16 h-16 rounded-full bg-sky-50 flex items-center justify-center text-sky-600 mx-auto">
+              <div className="py-20 text-center bg-white rounded-3xl border border-zinc-200 shadow-xs p-8 space-y-4 max-w-md mx-auto my-6">
+                <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-600 mx-auto">
                   <ShoppingBag className="w-8 h-8" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">No encontramos productos coincidentes</h3>
-                <p className="text-xs text-slate-500">
-                  Intenta cambiar las tallas, colores o términos de búsqueda seleccionados.
+                <h3 className="text-lg font-black text-black uppercase">No encontramos productos coincidentes</h3>
+                <p className="text-xs text-zinc-500">
+                  Intenta cambiar las tallas, filtros o términos de búsqueda seleccionados.
                 </p>
                 <button
                   onClick={() => {
@@ -775,15 +851,16 @@ export default function App() {
                     setSelectedGender('all');
                     setSearchQuery('');
                     setFilters(INITIAL_FILTERS);
+                    setCurrentPage(1);
                   }}
-                  className="px-5 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold rounded-xl text-xs shadow-md shadow-sky-500/20 cursor-pointer"
+                  className="px-6 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer shadow-xs"
                 >
                   Ver Catálogo Completo
                 </button>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                   {paginatedProducts.map((product, idx) => (
                     <ProductCard
                       key={product.id}
@@ -801,36 +878,29 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* Product Pagination Bar */}
+                {/* Product Pagination Bar matching Screenshot 6 */}
                 {totalPages > 1 && (
-                  <div className="mt-8 pt-4 border-t border-sky-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/90 p-4 rounded-2xl border border-sky-100 shadow-2xs">
+                  <div className="mt-12 pt-6 border-t border-zinc-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                     
-                    {/* Left: Page Counter */}
-                    <div className="text-xs text-slate-600 text-center sm:text-left">
-                      <span>Mostrando </span>
-                      <strong className="text-slate-900 font-bold">{startIndex + 1} - {endIndex}</strong>
-                      <span> de </span>
-                      <strong className="text-sky-800 font-bold">{totalProducts}</strong>
-                      <span> productos</span>
-                      <span className="text-slate-400 mx-1.5">•</span>
-                      <span className="text-slate-700 font-semibold">Página {safeCurrentPage} de {totalPages}</span>
+                    {/* Left: Summary */}
+                    <div className="text-xs text-zinc-500 text-center sm:text-left font-normal">
+                      Mostrando {startIndex + 1}–{endIndex} de {totalProducts} productos
                     </div>
 
-                    {/* Center: Numeric Page Navigation Buttons */}
-                    <div className="flex items-center gap-1.5 justify-center flex-wrap">
+                    {/* Center: Sleek Numeric Page Buttons */}
+                    <div className="flex items-center gap-2 justify-center">
                       {/* Previous Page */}
                       <button
                         type="button"
                         onClick={() => handlePageChange(safeCurrentPage - 1)}
                         disabled={safeCurrentPage <= 1}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-sky-200 text-xs font-bold text-slate-700 hover:bg-sky-50 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed transition-all shadow-2xs"
-                        title="Página anterior"
+                        className="w-8 h-8 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-700 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
+                        aria-label="Página anterior"
                       >
                         <ChevronLeft className="w-4 h-4" />
-                        <span className="hidden xs:inline">Anterior</span>
                       </button>
 
-                      {/* Numbered Buttons */}
+                      {/* Page numbers */}
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
                         const isActive = pageNum === safeCurrentPage;
                         return (
@@ -838,10 +908,10 @@ export default function App() {
                             key={pageNum}
                             type="button"
                             onClick={() => handlePageChange(pageNum)}
-                            className={`min-w-8 h-8 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
                               isActive
-                                ? 'bg-sky-600 text-white shadow-xs scale-105'
-                                : 'bg-slate-50 hover:bg-sky-50 text-slate-700 border border-sky-100'
+                                ? 'bg-black text-white shadow-xs font-black'
+                                : 'bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-200'
                             }`}
                           >
                             {pageNum}
@@ -854,36 +924,16 @@ export default function App() {
                         type="button"
                         onClick={() => handlePageChange(safeCurrentPage + 1)}
                         disabled={safeCurrentPage >= totalPages}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-sky-200 text-xs font-bold text-slate-700 hover:bg-sky-50 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed transition-all shadow-2xs"
-                        title="Página siguiente"
+                        className="w-8 h-8 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-700 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
+                        aria-label="Página siguiente"
                       >
-                        <span className="hidden xs:inline">Siguiente</span>
                         <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
 
-                    {/* Right: Items per page selector */}
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <span>Por página:</span>
-                      <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-sky-100">
-                        {[10, 16, 24].map((size) => (
-                          <button
-                            key={size}
-                            type="button"
-                            onClick={() => {
-                              setItemsPerPage(size);
-                              setCurrentPage(1);
-                            }}
-                            className={`px-2 py-0.5 rounded-lg font-bold text-[11px] transition-colors cursor-pointer ${
-                              itemsPerPage === size
-                                ? 'bg-sky-600 text-white shadow-2xs'
-                                : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                          >
-                            {size}
-                          </button>
-                        ))}
-                      </div>
+                    {/* Right: Items per page */}
+                    <div className="text-xs text-zinc-400">
+                      Página {safeCurrentPage} de {totalPages}
                     </div>
 
                   </div>
@@ -891,67 +941,87 @@ export default function App() {
               </>
             )}
 
-            {/* Compact Perks Badges (Sin garantía de cambio de talla) */}
-            <div className="mt-10 pt-6 border-t border-sky-100 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-[11px] text-slate-500">
-              <div className="flex items-center gap-1.5">
-                <Truck className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-                <span>Envíos rápidos a nivel nacional</span>
+            {/* If not home view, show brands strip before footer */}
+            {!isHomeView && (
+              <div className="mt-14">
+                <BrandsStrip
+                  onSelectBrand={(brand) => {
+                    setFilters((prev) => ({ ...prev, selectedBrands: [brand] }));
+                    setCurrentPage(1);
+                  }}
+                />
               </div>
-              <div className="flex items-center gap-1.5">
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span>Asesoría directa por WhatsApp</span>
-              </div>
-            </div>
+            )}
 
           </main>
 
-          {/* Store Footer */}
-          <footer className="bg-white border-t border-sky-100 text-slate-500 text-xs mt-8 py-6 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2.5">
-                <img
-                  src={settings.logoUrl || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&auto=format&fit=crop&q=80"}
-                  alt={settings.storeName}
-                  className="w-8 h-8 rounded-xl object-cover border border-sky-200 shadow-xs"
-                  referrerPolicy="no-referrer"
-                />
-                <div>
-                  <p className="font-extrabold text-slate-900 text-xs sm:text-sm">{settings.storeName}</p>
-                  <p className="text-[10px] sm:text-[11px] text-slate-400">{settings.slogan}</p>
+          {/* Minimalist Store Footer matching Yolu */}
+          <footer className="bg-white border-t border-zinc-200 text-zinc-600 text-xs mt-12 py-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                {/* Brand Logo & Slogan */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                  {settings.logoUrl ? (
+                    <img
+                      src={settings.logoUrl}
+                      alt={settings.storeName}
+                      className="h-8 w-auto object-contain"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <span className="text-xl font-black tracking-tight text-black uppercase font-sans">
+                      {settings.storeName || 'AURA'}
+                    </span>
+                  )}
+                  <span className="hidden sm:inline text-zinc-300">|</span>
+                  <p className="text-xs text-zinc-500 font-medium">
+                    {settings.slogan || 'Zapatillas y Streetwear 100% Originales'}
+                  </p>
                 </div>
+
+                {/* Quick Utility Links */}
+                <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-zinc-700">
+                  <button
+                    onClick={() => handleOpenTracking()}
+                    className="hover:text-black flex items-center gap-1.5 transition-colors cursor-pointer"
+                    id="btn-footer-tracking"
+                  >
+                    <Truck className="w-4 h-4 text-zinc-500" />
+                    <span>Rastrear mi Pedido</span>
+                  </button>
+                  
+                  <span className="text-zinc-300">•</span>
+
+                  <a
+                    href={`https://wa.me/${(settings.whatsappNumber || '').replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${settings.storeName}! Quisiera consultar sobre sus productos.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-black flex items-center gap-1.5 transition-colors cursor-pointer text-emerald-700"
+                    id="link-footer-whatsapp"
+                  >
+                    <MessageCircle className="w-4 h-4 text-emerald-600" />
+                    <span>WhatsApp: {settings.whatsappDisplayNumber || settings.whatsappNumber}</span>
+                  </a>
+
+                  <span className="text-zinc-300">•</span>
+
+                  <button
+                    onClick={() => setViewMode('admin')}
+                    className="text-zinc-400 hover:text-black transition-colors cursor-pointer"
+                    title="Acceso al Subdominio / Sistema ERP de Administración"
+                    id="btn-footer-admin-portal"
+                  >
+                    Acceso ERP
+                  </button>
+                </div>
+
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-3 text-slate-600 text-[11px] sm:text-xs">
-                {/* Dynamic WhatsApp Click-to-Chat Button */}
-                <a
-                  href={`https://wa.me/${(settings.whatsappNumber || '').replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${settings.storeName}! Quisiera realizar una consulta sobre sus productos.`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-slate-700 hover:text-emerald-600 font-bold flex items-center gap-1.5 transition-colors cursor-pointer bg-slate-50 hover:bg-emerald-50 px-3 py-1.5 rounded-xl border border-sky-100 hover:border-emerald-200 shadow-2xs"
-                  title="Abrir chat directo en WhatsApp"
-                  id="link-footer-whatsapp"
-                >
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>WhatsApp: <strong className="text-slate-900">{settings.whatsappDisplayNumber || settings.whatsappNumber}</strong></span>
-                </a>
-                <span>•</span>
-                <button
-                  onClick={() => handleOpenTracking()}
-                  className="text-sky-600 hover:text-sky-800 font-bold underline flex items-center gap-1 cursor-pointer"
-                  id="btn-footer-tracking"
-                >
-                  <Truck className="w-3.5 h-3.5" />
-                  <span>Rastrear mi Pedido</span>
-                </button>
-                <span>•</span>
-                <button
-                  onClick={() => setViewMode('admin')}
-                  className="text-slate-400 hover:text-slate-700 text-[11px] font-medium transition-colors cursor-pointer"
-                  title="Acceso al Subdominio / Sistema ERP de Administración"
-                  id="btn-footer-admin-portal"
-                >
-                  Sistema ERP
-                </button>
+              {/* Copyright & Disclaimer */}
+              <div className="pt-6 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-zinc-400 text-center sm:text-left">
+                <p>© {new Date().getFullYear()} {settings.storeName}. Todos los derechos reservados. Tienda autorizada de calzado original.</p>
+                <p>Envíos a todo el Perú • Pagos seguros con Yape, Plin y Tarjetas</p>
               </div>
             </div>
           </footer>
@@ -964,6 +1034,8 @@ export default function App() {
             product={selectedProduct}
             onClose={() => setSelectedProduct(null)}
             settings={settings}
+            recommendedProducts={products}
+            onOpenProduct={(p) => setSelectedProduct(p)}
             onAddToCart={(product, size, color, quantity) => {
               handleAddToCart(product, size, color, quantity);
               setSelectedProduct(null);

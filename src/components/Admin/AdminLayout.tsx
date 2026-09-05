@@ -19,7 +19,8 @@ import {
   Trash2, 
   ShieldCheck,
   CheckCircle2,
-  ScanLine
+  ScanLine,
+  Award
 } from 'lucide-react';
 import { ProductFormModal } from './ProductFormModal';
 import { OrderManager } from './OrderManager';
@@ -27,6 +28,7 @@ import { ReportsView } from './ReportsView';
 import { StockAlertsView } from './StockAlertsView';
 import { StoreSettingsView } from './StoreSettingsView';
 import { BarcodeScannerView } from './BarcodeScannerView';
+import { BrandsManager } from './BrandsManager';
 
 interface AdminLayoutProps {
   products: Product[];
@@ -43,7 +45,7 @@ interface AdminLayoutProps {
   onPreviewTracking?: (orderCode: string) => void;
 }
 
-type AdminTab = 'scanner' | 'products' | 'orders' | 'reports' | 'stock' | 'settings';
+type AdminTab = 'scanner' | 'products' | 'orders' | 'reports' | 'stock' | 'brands' | 'settings';
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({
   products,
@@ -161,6 +163,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             { id: 'orders' as const, label: 'Órdenes de Compra', icon: ShoppingBag, count: pendingOrdersCount, badgeColor: 'bg-amber-100 text-amber-800 border border-amber-200' },
             { id: 'reports' as const, label: 'Reportes Financieros (PDF/Excel)', icon: TrendingUp },
             { id: 'stock' as const, label: 'Alertas de Stock', icon: AlertTriangle, count: lowStockCount, badgeColor: 'bg-rose-100 text-rose-700 border border-rose-200' },
+            { id: 'brands' as const, label: 'Pasarela de Marcas', icon: Award, count: (settings.brands && settings.brands.length > 0) ? settings.brands.filter(b => b.isActive).length : 8, badgeColor: 'bg-emerald-100 text-emerald-800 border border-emerald-200' },
             { id: 'settings' as const, label: 'Configuración Tienda & WhatsApp', icon: SettingsIcon }
           ].map((tab) => {
             const Icon = tab.icon;
@@ -366,6 +369,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             products={products}
             onOpenProductForm={(barcode) => handleOpenNewProduct(barcode)}
             onEditProduct={(p) => handleEditProduct(p)}
+          />
+        )}
+
+        {/* Tab: Brands Runway Manager */}
+        {activeTab === 'brands' && (
+          <BrandsManager
+            settings={settings}
+            onSaveSettings={onSaveSettings}
           />
         )}
 

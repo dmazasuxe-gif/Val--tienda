@@ -2,74 +2,80 @@
 
 @layer base {
   :root {
-    --sky-soft: #f0f9ff;
-    --sky-border: #e0f2fe;
-    --sky-accent: #0284c7;
-    --cream-white: #ffffff;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-tertiary: #94a3b8;
+    --zinc-soft: #f4f4f5;
+    --zinc-border: #e4e4e7;
+    --text-primary: #09090b;
+    --text-secondary: #71717a;
   }
 
   body {
-    background: radial-gradient(circle at 15% 0%, #e0f2fe 0%, #f0f9ff 35%, #fafcff 70%, #f8fafc 100%);
-    background-attachment: fixed;
-    color: #0f172a;
+    background-color: #ffffff;
+    color: #09090b;
     min-height: 100vh;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  /* Custom scrollbar in subtle sky tones */
+  /* Custom scrollbar in minimal clean zinc tones */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
   ::-webkit-scrollbar-track {
-    background: #f0f9ff;
+    background: #f4f4f5;
   }
   ::-webkit-scrollbar-thumb {
-    background: #bae6fd;
+    background: #d4d4d8;
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #38bdf8;
+    background: #a1a1aa;
   }
 }
 
-/* Minimalist Luxury Sky Components & Cards */
+/* Yolu Minimalist Card & UI Utilities */
+.yolu-card {
+  background-color: #f4f4f5;
+  border-radius: 1rem;
+  transition: all 0.25s ease-in-out;
+}
+
+.yolu-card:hover {
+  background-color: #ededf0;
+}
+
 .luxury-card {
   background-color: #ffffff;
-  border: 1px solid #e0f2fe;
-  box-shadow: 0 4px 20px -2px rgba(2, 132, 199, 0.04), 0 2px 6px -1px rgba(2, 132, 199, 0.02);
-  color: #0f172a;
+  border: 1px solid #e4e4e7;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.04);
+  color: #09090b;
   transition: all 0.2s ease-in-out;
 }
 
 .luxury-card:hover {
-  border-color: #7dd3fc;
-  box-shadow: 0 12px 28px -4px rgba(2, 132, 199, 0.1), 0 4px 10px -2px rgba(2, 132, 199, 0.04);
+  border-color: #a1a1aa;
 }
 
 .luxury-glass {
-  background-color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(224, 242, 254, 0.9);
-  color: #0f172a;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #e4e4e7;
+  color: #09090b;
 }
 
 .luxury-input {
   background-color: #ffffff;
-  border: 1px solid #bae6fd;
-  color: #0f172a;
-  border-radius: 1rem;
+  border: 1px solid #e4e4e7;
+  color: #09090b;
+  border-radius: 9999px;
   transition: all 0.2s ease-in-out;
 }
 
 .luxury-input:focus {
   outline: none;
-  border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  border-color: #09090b;
+  box-shadow: 0 0 0 2px rgba(9, 9, 11, 0.1);
 }
 
 .luxury-input::placeholder {

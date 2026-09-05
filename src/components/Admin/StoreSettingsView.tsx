@@ -34,6 +34,7 @@ import {
   Printer
 } from 'lucide-react';
 import { ReceiptSettingsPanel } from './ReceiptSettingsPanel';
+import { BrandsManager } from './BrandsManager';
 import { playNotificationChime, requestPushPermission, getPushPermissionStatus } from '../../utils/sound';
 
 interface StoreSettingsViewProps {
@@ -1949,6 +1950,17 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
 
           </div>
         </div>
+      </div>
+
+      {/* 12. Pasarela de Marcas & Logos de la Tienda */}
+      <div className="pt-2">
+        <BrandsManager 
+          settings={formData}
+          onSaveSettings={(newSettings) => {
+            setFormData(newSettings);
+            onSaveSettings(newSettings);
+          }}
+        />
       </div>
 
       <ReceiptSettingsPanel 

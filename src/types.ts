@@ -104,6 +104,9 @@ export interface StoreSettings {
   // Pasarela de Imágenes / Runway Slides
   runwaySlides?: RunwaySlide[];
 
+  // Pasarela de Marcas / Logos
+  brands?: StoreBrand[];
+
   // Opciones y Métodos de Envío
   shippingOptions?: ShippingOption[];
 
@@ -164,6 +167,16 @@ export interface ShippingOption {
   estimatedTime: string;
   description?: string;
   isActive: boolean;
+}
+
+export interface StoreBrand {
+  id: string;
+  name: string; // e.g. "Nike", "Adidas", "Jordan"
+  logoUrl: string; // URL or Data URL (uploaded base64 image)
+  label?: string; // Optional custom display text/label (e.g. "NIKE")
+  websiteUrl?: string; // Optional link or filter
+  isActive: boolean; // Toggle to show/hide in the storefront
+  order?: number; // Ordering index
 }
 
 export interface RunwaySlide {

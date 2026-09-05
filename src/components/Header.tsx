@@ -2,12 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   ShoppingBag, 
   Search, 
-  ShieldCheck, 
-  MessageCircle, 
-  Sparkles,
-  Menu,
-  X,
-  Truck
+  User, 
+  Menu, 
+  X, 
+  Truck,
+  MessageCircle,
+  ShieldCheck,
+  Sparkles
 } from 'lucide-react';
 import { StoreSettings } from '../types';
 import { getGeneralSupportWhatsAppUrl } from '../utils/whatsapp';
@@ -26,6 +27,9 @@ interface HeaderProps {
   onOpenTracking?: () => void;
   cartBounceTrigger?: number;
   showAdminButton?: boolean;
+  currentCategory?: string;
+  currentGender?: string;
+  onSelectSpecialFilter?: (type: 'nuevo' | 'sale') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -41,12 +45,15 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectCategoryFilter,
   onOpenTracking,
   cartBounceTrigger = 0,
-  showAdminButton = false
+  showAdminButton = false,
+  currentCategory = 'all',
+  currentGender = 'all',
+  onSelectSpecialFilter,
 }) => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Soft tactile cart bounce states
+  // Cart bounce indicators
   const [isCartBouncing, setIsCartBouncing] = useState(false);
   const [bounceKey, setBounceKey] = useState(0);
   const [showFloatingPlus, setShowFloatingPlus] = useState(false);
@@ -60,14 +67,12 @@ export const Header: React.FC<HeaderProps> = ({
     setShowFloatingPlus(true);
   };
 
-  // Trigger bounce whenever explicit cartBounceTrigger increments
   useEffect(() => {
     if (cartBounceTrigger && cartBounceTrigger > 0) {
       triggerCartBounce(1);
     }
   }, [cartBounceTrigger]);
 
-  // Trigger bounce automatically when cartCount increases
   useEffect(() => {
     if (cartCount > prevCartCountRef.current) {
       const diff = cartCount - prevCartCountRef.current;
@@ -76,21 +81,16 @@ export const Header: React.FC<HeaderProps> = ({
     prevCartCountRef.current = cartCount;
   }, [cartCount]);
 
-  // Settle animation states after spring bounce completes
   useEffect(() => {
     if (isCartBouncing) {
-      const timer = setTimeout(() => {
-        setIsCartBouncing(false);
-      }, 950);
+      const timer = setTimeout(() => setIsCartBouncing(false), 950);
       return () => clearTimeout(timer);
     }
   }, [isCartBouncing, bounceKey]);
 
   useEffect(() => {
     if (showFloatingPlus) {
-      const timer = setTimeout(() => {
-        setShowFloatingPlus(false);
-      }, 1050);
+      const timer = setTimeout(() => setShowFloatingPlus(false), 1050);
       return () => clearTimeout(timer);
     }
   }, [showFloatingPlus, bounceKey]);
@@ -105,213 +105,237 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const handleCategorySelect = (category: 'all' | 'calzado' | 'ropa', gender: 'all' | 'varones' | 'mujeres' | 'ninos') => {
+  const handleCategoryClick = (
+    cat: 'all' | 'calzado' | 'ropa',
+    gen: 'all' | 'varones' | 'mujeres' | 'ninos'
+  ) => {
     if (onSelectCategoryFilter) {
-      onSelectCategoryFilter(category, gender);
+      onSelectCategoryFilter(cat, gen);
     }
+    setMobileMenuOpen(false);
+  };
+
+  const handleNuevoClick = () => {
+    if (onSelectSpecialFilter) {
+      onSelectSpecialFilter('nuevo');
+    } else if (onSelectCategoryFilter) {
+      onSelectCategoryFilter('all', 'all');
+    }
+    setMobileMenuOpen(false);
   };
 
   const supportUrl = getGeneralSupportWhatsAppUrl(settings);
 
-  return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-sky-100 shadow-sm transition-all">
-      {/* Top Banner Notice - Luxury Sky Blue Accent */}
-      {settings.bannerNoticeActive && settings.bannerNotice && (
-        <div className="bg-gradient-to-r from-sky-600 via-sky-500 to-blue-600 text-white py-1 px-3 text-xs font-semibold text-center flex items-center justify-center gap-1.5 shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 shrink-0 text-sky-200" />
-          <span className="truncate">{settings.bannerNotice}</span>
-        </div>
-      )}
+  // Top ticker announcement items matching Yolu.pe
+  const announcementItems = [
+    'Solo vendemos zapatillas originales y nada más!',
+    '¡LA CASA DE LAS ZAPATILLAS!',
+    `Síguenos en Instagram ${settings.storeInstagram || '@auramoda.pe'}`,
+    'Envíos rápidos a todo el Perú'
+  ];
 
-      {/* Main Header Bar */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
+  return (
+    <header className="sticky top-0 z-40 bg-white border-b border-zinc-200 select-none">
+      {/* Top Announcement Bar - Ticker Style */}
+      <div className="bg-[#f4f4f5] border-b border-zinc-200/80 py-1.5 px-3 text-[11px] text-zinc-700 overflow-hidden font-medium">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-6 overflow-x-auto scrollbar-none whitespace-nowrap mx-auto">
+            {announcementItems.map((item, idx) => (
+              <React.Fragment key={idx}>
+                <span className="flex items-center gap-1.5 tracking-tight font-semibold">
+                  {idx === 0 && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />}
+                  {item}
+                </span>
+                {idx < announcementItems.length - 1 && (
+                  <span className="text-zinc-400 select-none">•</span>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Navbar Bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
           
-          {/* Store Logo & Full Title (Generous space, no cramped clamping) */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-            {/* Store Navigation Menu Toggle Button */}
+          {/* Left: Navigation Categories (Desktop) & Mobile Hamburger */}
+          <div className="flex items-center gap-2 lg:gap-4 flex-1">
+            {/* Mobile Hamburger */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 sm:px-2.5 sm:py-1.5 -ml-1 text-slate-700 hover:text-slate-900 rounded-xl hover:bg-sky-50 border border-transparent hover:border-sky-200 transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
-              aria-label="Abrir menú de la tienda"
-              title="Menú de Navegación y Opciones"
-              id="btn-header-menu"
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-2 text-zinc-800 hover:text-black rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer"
+              aria-label="Abrir menú"
+              id="btn-header-mobile-menu"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5 text-sky-600" /> : <Menu className="w-5 h-5 text-slate-700" />}
-              <span className="hidden sm:inline text-xs font-bold text-slate-800">Menú</span>
+              <Menu className="w-5 h-5" />
             </button>
 
-            {/* Store Logo & Title */}
-            <div 
-              className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group min-w-0" 
-              onClick={() => handleCategorySelect('all', 'all')}
-            >
-              {settings.logoUrl ? (
-                <div className="relative w-9 h-9 sm:w-12 sm:h-12 rounded-2xl overflow-hidden border border-sky-200/80 shadow-md shadow-sky-500/10 shrink-0 bg-sky-50">
-                  <img
-                    src={settings.logoUrl}
-                    alt={settings.storeName}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-              ) : (
-                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white font-black text-sm sm:text-xl shadow-md shadow-sky-500/20 shrink-0">
-                  {settings.storeName.charAt(0)}
-                </div>
-              )}
+            {/* Desktop Category Nav Links matching Yolu */}
+            <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+              <button
+                onClick={handleNuevoClick}
+                className="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-zinc-700 hover:text-black transition-all cursor-pointer"
+              >
+                NUEVO
+              </button>
 
-              <div className="flex flex-col min-w-0">
-                <span className="font-extrabold text-sm sm:text-2xl tracking-tight text-slate-900 flex items-center gap-1 font-['Playfair_Display',serif] leading-tight group-hover:text-sky-700 transition-colors">
-                  {settings.storeName}
-                </span>
-                <span className="text-[10px] sm:text-xs text-sky-600 font-semibold tracking-wider uppercase truncate">
-                  {settings.slogan || 'Calzado & Moda Exclusiva'}
-                </span>
-              </div>
-            </div>
+              <button
+                onClick={() => handleCategoryClick('all', 'varones')}
+                className={`px-3.5 py-1.5 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                  currentGender === 'varones' && currentCategory === 'all'
+                    ? 'bg-black text-white font-black shadow-xs'
+                    : 'text-zinc-700 hover:text-black font-bold'
+                }`}
+              >
+                HOMBRE
+              </button>
+
+              <button
+                onClick={() => handleCategoryClick('all', 'mujeres')}
+                className={`px-3.5 py-1.5 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                  currentGender === 'mujeres' && currentCategory === 'all'
+                    ? 'bg-black text-white font-black shadow-xs'
+                    : 'text-zinc-700 hover:text-black font-bold'
+                }`}
+              >
+                MUJER
+              </button>
+
+              <button
+                onClick={() => handleCategoryClick('all', 'ninos')}
+                className={`px-3.5 py-1.5 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                  currentGender === 'ninos' && currentCategory === 'all'
+                    ? 'bg-black text-white font-black shadow-xs'
+                    : 'text-zinc-700 hover:text-black font-bold'
+                }`}
+              >
+                NIÑOS
+              </button>
+
+              <button
+                onClick={() => handleCategoryClick('ropa', 'all')}
+                className={`px-3.5 py-1.5 rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                  currentCategory === 'ropa'
+                    ? 'bg-black text-white font-black shadow-xs'
+                    : 'text-zinc-700 hover:text-black font-bold'
+                }`}
+              >
+                ROPA Y ACCESORIOS
+              </button>
+            </nav>
           </div>
 
-          {/* Desktop Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-md mx-2">
-            <div className="relative w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sky-500" />
+          {/* Center: Brand Geometric Logo */}
+          <div 
+            onClick={() => handleCategoryClick('all', 'all')}
+            className="cursor-pointer flex items-center justify-center shrink-0 group py-2"
+          >
+            {settings.logoUrl ? (
+              <div className="h-8 sm:h-10 flex items-center">
+                <img
+                  src={settings.logoUrl}
+                  alt={settings.storeName}
+                  className="max-h-8 sm:max-h-10 w-auto object-contain"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            ) : (
+              <span className="text-2xl sm:text-3xl font-black tracking-tighter text-black uppercase font-sans select-none">
+                {settings.storeName || 'AURA'}
+              </span>
+            )}
+          </div>
+
+          {/* Right: Search + User + Cart Bag */}
+          <div className="flex items-center justify-end gap-2 sm:gap-3 flex-1">
+            
+            {/* Minimalist Search Bar (Desktop) */}
+            <div className="hidden md:flex relative w-44 lg:w-56">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
               <input
                 type="text"
-                placeholder="Buscar calzado, ropa, marcas..."
+                placeholder="Buscar.."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-sky-50/70 border border-sky-200/70 rounded-full text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-sky-400 transition-all shadow-inner"
-                id="search-input-desktop"
+                className="w-full pl-9 pr-7 py-2 bg-[#f4f4f5] hover:bg-[#ededf0] focus:bg-white border border-transparent focus:border-black rounded-full text-xs text-zinc-900 placeholder-zinc-400 transition-all outline-none"
+                id="search-input-yolu"
               />
               {searchQuery && (
                 <button
                   onClick={() => onSearchChange('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-700 bg-sky-100 rounded-full p-1 cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black cursor-pointer"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
-          </div>
 
-          {/* Right Action Icons & Controls */}
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-            
             {/* Mobile Search Toggle */}
             <button
               onClick={() => setShowMobileSearch(!showMobileSearch)}
-              className="p-2 text-slate-600 hover:text-sky-600 rounded-full hover:bg-sky-50 transition-colors md:hidden cursor-pointer"
-              aria-label="Buscar productos"
+              className="md:hidden p-2 text-zinc-700 hover:text-black rounded-full hover:bg-zinc-100 transition-colors cursor-pointer"
+              aria-label="Buscar"
               id="btn-mobile-search-toggle"
             >
               <Search className="w-5 h-5" />
             </button>
 
-            {/* WhatsApp Contact Header Button (Desktop) */}
-            <a
-              href={supportUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden xl:flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-full text-xs font-semibold transition-all hover:scale-102 shadow-xs"
-              id="btn-header-whatsapp"
-            >
-              <MessageCircle className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600" />
-              <span>WhatsApp</span>
-            </a>
-
-            {/* Cart Icon & Button with Tactile Bouncing Effect */}
+            {/* User Icon Button (Admin / Profile) */}
             <button
-              onClick={onOpenCart}
-              className={`relative p-2 sm:px-3.5 sm:py-2 rounded-full transition-all duration-300 flex items-center gap-2 cursor-pointer shrink-0 shadow-md ${
-                isCartBouncing 
-                  ? 'bg-slate-900 ring-2 ring-sky-400/80 shadow-sky-500/30 scale-105' 
-                  : 'bg-slate-900 hover:bg-slate-800 text-white hover:scale-102 shadow-slate-900/10'
-              }`}
-              title="Ver Carrito de Compras"
-              id="btn-header-cart"
+              onClick={handleAdminClick}
+              className="p-2 text-zinc-700 hover:text-black rounded-full hover:bg-zinc-100 transition-colors cursor-pointer"
+              title={isAdmin ? "Panel de Administración" : "Acceso Administrativo / Cuenta"}
+              aria-label="Usuario"
+              id="btn-header-user"
             >
-              {/* Soft expanding tactile ripple when an item is added */}
-              {isCartBouncing && (
-                <span 
-                  key={`ripple-${bounceKey}`}
-                  className="absolute inset-0 rounded-full bg-sky-400/30 animate-cart-ripple pointer-events-none" 
-                />
-              )}
-
-              {/* Floating +N indicator that flies up playfully */}
-              {showFloatingPlus && (
-                <span 
-                  key={`float-${bounceKey}`}
-                  className="absolute -top-3.5 right-1 px-1.5 py-0.5 rounded-full bg-sky-500 text-white text-[10px] font-black pointer-events-none animate-float-up shadow-sm border border-white/40 z-30"
-                >
-                  +{floatingQty}
-                </span>
-              )}
-
-              {/* Soft bouncing shopping bag icon */}
-              <div className="relative flex items-center justify-center">
-                <ShoppingBag 
-                  key={`icon-${bounceKey}`}
-                  className={`w-4 h-4 sm:w-4.5 sm:h-4.5 text-sky-300 transition-colors ${
-                    isCartBouncing ? 'animate-cart-bounce text-sky-200' : ''
-                  }`} 
-                />
-              </div>
-
-              <span className="hidden md:inline text-xs font-bold text-white">Carrito</span>
-
-              {cartCount > 0 && (
-                <span 
-                  key={`badge-${bounceKey}`}
-                  className={`bg-sky-400 text-slate-950 text-[10px] sm:text-[11px] font-black w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shadow-sm transition-transform ${
-                    isCartBouncing ? 'animate-badge-pop' : ''
-                  }`}
-                >
-                  {cartCount}
-                </span>
-              )}
+              <User className="w-5 h-5" />
             </button>
 
-            {/* Admin Panel Access Button (Only rendered if showAdminButton is true) */}
-            {showAdminButton && (
-              <button
-                onClick={handleAdminClick}
-                className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer shrink-0 ${
-                  isAdmin 
-                    ? 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 shadow-xs' 
-                    : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
-                }`}
-                title={isAdmin ? 'Ir al Panel Administrativo' : 'Acceso Administrativo'}
-                id="btn-admin-access"
-              >
-                <ShieldCheck className={`w-3.5 h-3.5 ${isAdmin ? 'text-purple-600' : 'text-slate-500'}`} />
-                <span className="hidden lg:inline">{isAdmin ? 'Panel Admin' : 'Admin'}</span>
-              </button>
-            )}
+            {/* Shopping Bag Button */}
+            <button
+              onClick={onOpenCart}
+              className={`relative p-2 text-zinc-900 hover:text-black rounded-full hover:bg-zinc-100 transition-all duration-300 cursor-pointer flex items-center justify-center ${
+                isCartBouncing ? 'scale-110' : ''
+              }`}
+              title="Ver Carrito de Compras"
+              aria-label="Carrito de compras"
+              id="btn-header-cart"
+            >
+              <ShoppingBag className={`w-5 h-5 ${isCartBouncing ? 'animate-cart-bounce' : ''}`} />
+              
+              {/* Badge Counter */}
+              <span className={`absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full text-[10px] font-black flex items-center justify-center transition-transform ${
+                cartCount > 0 
+                  ? 'bg-black text-white' 
+                  : 'bg-zinc-200 text-zinc-600'
+              } ${isCartBouncing ? 'animate-badge-pop' : ''}`}>
+                {cartCount}
+              </span>
+            </button>
           </div>
+
         </div>
 
-        {/* Mobile Search Expandable Bar */}
+        {/* Mobile Search Bar Expansion */}
         {showMobileSearch && (
-          <div className="pb-3 pt-1 md:hidden animate-fade-in">
+          <div className="pb-3 md:hidden animate-fade-in">
             <div className="relative w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-sky-500" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
               <input
                 type="text"
-                placeholder="Buscar calzado, ropa, tallas, marcas..."
+                placeholder="Buscar zapatillas, ropa, marcas..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full pl-10 pr-9 py-2.5 bg-[#f4f4f5] border border-zinc-200 rounded-full text-xs text-zinc-900 placeholder-zinc-400 outline-none"
                 autoFocus
-                className="w-full pl-9 pr-9 py-2 bg-sky-50 border border-sky-300 rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white shadow-inner"
-                id="search-input-mobile"
               />
               {searchQuery && (
                 <button
                   onClick={() => onSearchChange('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-700 cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -319,100 +343,118 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
 
-      {/* Store Navigation Menu Drawer */}
+      {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="border-b border-sky-100 bg-white/98 backdrop-blur-2xl shadow-xl animate-fade-in text-slate-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-3">
-            <div className="text-xs font-bold uppercase tracking-wider text-sky-700 mb-2 flex items-center justify-between">
-              <span>Categorías Principales</span>
-              <button 
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-[11px] text-slate-400 hover:text-slate-700 cursor-pointer"
-              >
-                Cerrar Menú ✕
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity" 
+            onClick={() => setMobileMenuOpen(false)}
+          />
+
+          {/* Drawer Content */}
+          <div className="relative w-4/5 max-w-sm bg-white h-full shadow-2xl flex flex-col justify-between p-6 z-10 animate-slide-right">
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs">
-            <button
-              onClick={() => { handleCategorySelect('calzado', 'varones'); setMobileMenuOpen(false); }}
-              className="text-left px-3 py-2.5 rounded-xl bg-sky-50/70 hover:bg-sky-100 border border-sky-100 text-slate-800 font-semibold cursor-pointer"
-            >
-              👟 Calzado Varones
-            </button>
-            <button
-              onClick={() => { handleCategorySelect('calzado', 'mujeres'); setMobileMenuOpen(false); }}
-              className="text-left px-3 py-2.5 rounded-xl bg-sky-50/70 hover:bg-sky-100 border border-sky-100 text-slate-800 font-semibold cursor-pointer"
-            >
-              👠 Calzado Mujeres
-            </button>
-            <button
-              onClick={() => { handleCategorySelect('calzado', 'ninos'); setMobileMenuOpen(false); }}
-              className="text-left px-3 py-2.5 rounded-xl bg-sky-50/70 hover:bg-sky-100 border border-sky-100 text-slate-800 font-semibold cursor-pointer"
-            >
-              🧒 Calzado Niños
-            </button>
-            <button
-              onClick={() => { handleCategorySelect('ropa', 'varones'); setMobileMenuOpen(false); }}
-              className="text-left px-3 py-2.5 rounded-xl bg-sky-50/70 hover:bg-sky-100 border border-sky-100 text-slate-800 font-semibold cursor-pointer"
-            >
-              👔 Ropa Varones
-            </button>
-            <button
-              onClick={() => { handleCategorySelect('ropa', 'mujeres'); setMobileMenuOpen(false); }}
-              className="text-left px-3 py-2.5 rounded-xl bg-sky-50/70 hover:bg-sky-100 border border-sky-100 text-slate-800 font-semibold cursor-pointer"
-            >
-              👗 Ropa Mujeres
-            </button>
-            <button
-              onClick={() => { handleCategorySelect('ropa', 'ninos'); setMobileMenuOpen(false); }}
-              className="text-left px-3 py-2.5 rounded-xl bg-sky-50/70 hover:bg-sky-100 border border-sky-100 text-slate-800 font-semibold cursor-pointer"
-            >
-              👕 Ropa Niños
-            </button>
-          </div>
+            <div className="space-y-6">
+              {/* Top Bar with Logo & Close */}
+              <div className="flex items-center justify-between pb-4 border-b border-zinc-200">
+                <span className="text-xl font-black tracking-tight text-black uppercase font-sans">
+                  {settings.storeName || 'AURA'}
+                </span>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-1.5 text-zinc-500 hover:text-black rounded-full hover:bg-zinc-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-          <div className="pt-2 border-t border-sky-100 flex flex-col gap-2">
-            {onOpenTracking && (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenTracking();
-                }}
-                className="flex items-center justify-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white py-2.5 rounded-xl font-bold text-xs shadow-md shadow-sky-500/20 cursor-pointer"
-              >
-                <Truck className="w-4 h-4" />
-                <span>Rastrear mi Pedido en Tiempo Real</span>
-              </button>
-            )}
+              {/* Navigation Links */}
+              <div className="flex flex-col gap-2 font-bold uppercase text-sm tracking-wide">
+                <button
+                  onClick={() => {
+                    handleCategoryClick('all', 'all');
+                  }}
+                  className="py-2.5 px-3 text-left rounded-xl hover:bg-zinc-100 text-zinc-800 transition-colors"
+                >
+                  TODO EL CATÁLOGO
+                </button>
+                <button
+                  onClick={handleNuevoClick}
+                  className="py-2.5 px-3 text-left rounded-xl hover:bg-zinc-100 text-zinc-800 transition-colors"
+                >
+                  NUEVO
+                </button>
+                <button
+                  onClick={() => handleCategoryClick('all', 'varones')}
+                  className="py-2.5 px-3 text-left rounded-xl hover:bg-zinc-100 text-zinc-800 transition-colors"
+                >
+                  HOMBRE
+                </button>
+                <button
+                  onClick={() => handleCategoryClick('all', 'mujeres')}
+                  className="py-2.5 px-3 text-left rounded-xl hover:bg-zinc-100 text-zinc-800 transition-colors"
+                >
+                  MUJER
+                </button>
+                <button
+                  onClick={() => handleCategoryClick('all', 'ninos')}
+                  className="py-2.5 px-3 text-left rounded-xl hover:bg-zinc-100 text-zinc-800 transition-colors"
+                >
+                  NIÑOS
+                </button>
+                <button
+                  onClick={() => handleCategoryClick('ropa', 'all')}
+                  className="py-2.5 px-3 text-left rounded-xl hover:bg-zinc-100 text-zinc-800 transition-colors"
+                >
+                  ROPA Y ACCESORIOS
+                </button>
+              </div>
 
-            <a
-              href={supportUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2.5 rounded-xl font-bold text-xs border border-emerald-200"
-            >
-              <MessageCircle className="w-4 h-4 fill-emerald-600 text-emerald-600" />
-              <span>Chatear con Asesor por WhatsApp</span>
-            </a>
+              {/* Extra Services & Tracking */}
+              <div className="pt-4 border-t border-zinc-100 space-y-2 text-xs font-semibold text-zinc-600">
+                {onOpenTracking && (
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenTracking();
+                    }}
+                    className="w-full flex items-center gap-2.5 py-2 px-3 rounded-xl hover:bg-zinc-100 text-left transition-colors"
+                  >
+                    <Truck className="w-4 h-4 text-zinc-700" />
+                    <span>Rastrear mi Pedido</span>
+                  </button>
+                )}
 
-            {showAdminButton && (
+                <a
+                  href={supportUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center gap-2.5 py-2 px-3 rounded-xl hover:bg-zinc-100 text-left transition-colors text-emerald-700"
+                >
+                  <MessageCircle className="w-4 h-4 text-emerald-600" />
+                  <span>WhatsApp de Atención</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Admin Portal Bottom Trigger */}
+            <div className="pt-4 border-t border-zinc-200">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   handleAdminClick();
                 }}
-                className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-semibold border border-slate-200 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
               >
-                <ShieldCheck className="w-4 h-4 text-purple-600" />
-                <span>{isAdmin ? 'Ingresar a Panel de Administración' : 'Acceso Administrador (PIN)'}</span>
+                <ShieldCheck className="w-4 h-4" />
+                <span>{isAdmin ? 'Ir al Panel Admin' : 'Acceso Administrativo'}</span>
               </button>
-            )}
+            </div>
+
           </div>
-        </div>
         </div>
       )}
     </header>
   );
 };
-

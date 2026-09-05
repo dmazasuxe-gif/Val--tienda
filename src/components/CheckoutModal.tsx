@@ -10,7 +10,6 @@ import {
   QrCode,
   Building2,
   Truck,
-  Sparkles,
   ArrowRight,
   ShieldCheck,
   Copy,
@@ -152,7 +151,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     const finalNotes = [
       notes.trim(),
       selectedShippingOption ? `Método de envío: ${selectedShippingOption.name} (${selectedShippingOption.estimatedTime})` : '',
-      (promoCode && discount > 0) ? `Cupón de Sorteo Canjeado: ${promoCode} (-${settings.currencySymbol} ${discount.toFixed(2)})` : ''
+      (promoCode && discount > 0) ? `Cupón Canjeado: ${promoCode} (-${settings.currencySymbol} ${discount.toFixed(2)})` : ''
     ].filter(Boolean).join(' • ');
 
     const newOrder: Order = {
@@ -186,7 +185,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setPlacedOrder(newOrder);
       setIsSubmitting(false);
 
-      // Trigger Celebration Confetti
       try {
         confetti({
           particleCount: 80,
@@ -205,7 +203,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const yapeNumberToDisplay = settings.yapeNumber || settings.whatsappDisplayNumber || '987 654 321';
   const yapeHolderToDisplay = settings.yapeHolderName || settings.whatsappAdvisorName || settings.storeName;
-  const yapeQrToDisplay = settings.yapeQrUrl || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=YAPE-PLIN-${yapeNumberToDisplay.replace(/\D/g, '')}&color=742774&bgcolor=ffffff`;
+  const yapeQrToDisplay = settings.yapeQrUrl || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=YAPE-PLIN-${yapeNumberToDisplay.replace(/\D/g, '')}&color=18181b&bgcolor=ffffff`;
 
   const bankAccountsToDisplay = (settings.bankAccounts && settings.bankAccounts.length > 0) ? settings.bankAccounts : [
     {
@@ -234,26 +232,25 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/40 backdrop-blur-md overflow-y-auto animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fade-in font-sans">
       <div className="fixed inset-0" onClick={placedOrder ? onClose : undefined} />
 
-      <div className="relative w-full max-w-2xl bg-white border border-sky-100 rounded-3xl shadow-2xl overflow-hidden z-10 my-auto max-h-[95vh] flex flex-col text-slate-800">
+      <div className="relative w-full max-w-2xl bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden z-10 my-auto max-h-[95vh] flex flex-col text-zinc-900">
         
-        {/* Header */}
-        <div className="p-3.5 sm:p-5 border-b border-sky-100 flex items-center justify-between bg-sky-50/70 shrink-0">
+        {/* Minimal Header */}
+        <div className="p-4 sm:p-6 border-b border-zinc-200 flex items-center justify-between bg-white shrink-0">
           <div className="min-w-0 pr-2">
-            <h2 className="text-base sm:text-xl font-bold text-slate-900 font-['Playfair_Display',serif] flex items-center gap-2 truncate">
-              <Sparkles className="w-5 h-5 text-sky-600 shrink-0" />
-              <span className="truncate">{placedOrder ? '¡Pedido Confirmado con Éxito!' : 'Finalizar Pedido'}</span>
+            <h2 className="text-base sm:text-lg font-black uppercase tracking-wider text-black flex items-center gap-2">
+              <span>{placedOrder ? '¡Pedido Confirmado!' : 'Finalizar Pedido'}</span>
             </h2>
-            <p className="text-[11px] sm:text-xs text-slate-500 truncate">
+            <p className="text-xs text-zinc-500">
               {placedOrder ? 'Tu orden ha sido registrada en nuestro sistema' : 'Completa tus datos para coordinar el despacho'}
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+            className="p-2 text-zinc-400 hover:text-black rounded-full hover:bg-zinc-100 transition-colors shrink-0 cursor-pointer"
             aria-label="Cerrar modal"
           >
             <X className="w-5 h-5" />
@@ -261,49 +258,46 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         </div>
 
         {/* Content: Form or Success Screen with QR/Banks/ContraEntrega */}
-        <div className="overflow-y-auto p-3.5 sm:p-6 flex-1 space-y-4">
+        <div className="overflow-y-auto p-4 sm:p-6 flex-1 space-y-5">
           {placedOrder ? (
-            <div className="space-y-5 text-center py-2">
+            <div className="space-y-6 text-center py-2">
               
               {/* Status Header Badge */}
-              <div className="w-14 h-14 sm:w-18 sm:h-18 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200 shadow-sm animate-scale-in">
-                <CheckCircle2 className="w-9 h-9 sm:w-11 sm:h-11" />
+              <div className="w-16 h-16 bg-zinc-100 text-black rounded-full flex items-center justify-center mx-auto border border-zinc-200 shadow-xs">
+                <CheckCircle2 className="w-9 h-9 text-emerald-600" />
               </div>
 
               <div>
-                <span className="text-[11px] uppercase font-bold text-sky-700 tracking-wider">Orden Registrada Exitosamente</span>
-                <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1 font-['Playfair_Display',serif]">
+                <span className="text-[11px] uppercase font-bold text-zinc-500 tracking-wider">Orden Registrada Exitosamente</span>
+                <h3 className="text-2xl sm:text-3xl font-black text-black mt-1 font-mono">
                   #{placedOrder.orderNumber}
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-md mx-auto">
-                  Gracias <strong>{placedOrder.customerName}</strong>. Total de tu pedido: <strong className="text-sky-700 text-base">{settings.currencySymbol} {placedOrder.total.toFixed(2)}</strong>.
+                <p className="text-xs sm:text-sm text-zinc-600 mt-1 max-w-md mx-auto">
+                  Gracias <strong>{placedOrder.customerName}</strong>. Total de tu pedido: <strong className="text-black text-base">{settings.currencySymbol} {placedOrder.total.toFixed(2)}</strong>.
                 </p>
               </div>
 
               {/* Live Tracking Highlight Card */}
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-sky-50 border border-sky-200 text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+              <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center border border-sky-200 shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center border border-zinc-200 shrink-0">
                     <Truck className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-sky-800 font-extrabold uppercase tracking-wider block">Tu Código de Rastreo para Envíos</span>
+                    <span className="text-[10px] text-zinc-500 font-black uppercase tracking-wider block">Código de Rastreo Oficial</span>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-base font-black text-slate-900 font-mono bg-white px-2.5 py-0.5 rounded-lg border border-sky-200">
+                      <span className="text-base font-black text-black font-mono bg-white px-2.5 py-0.5 rounded-lg border border-zinc-200">
                         #{placedOrder.orderNumber}
                       </span>
                       <button
                         type="button"
                         onClick={() => copyToClipboard(placedOrder.orderNumber, 'tracking_code')}
-                        className="px-2 py-1 bg-white hover:bg-sky-50 text-slate-700 text-[10px] font-bold rounded-lg border border-sky-200 flex items-center gap-1 cursor-pointer shadow-2xs"
+                        className="px-2 py-1 bg-white hover:bg-zinc-100 text-zinc-700 text-[10px] font-bold rounded-lg border border-zinc-200 flex items-center gap-1 cursor-pointer transition-colors"
                       >
-                        {copiedKey === 'tracking_code' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400" />}
+                        {copiedKey === 'tracking_code' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-zinc-400" />}
                         <span>{copiedKey === 'tracking_code' ? '¡Copiado!' : 'Copiar'}</span>
                       </button>
                     </div>
-                    <p className="text-[11px] text-slate-600 mt-1">
-                      Rastrea el recorrido del vehículo en vivo con este código oficial.
-                    </p>
                   </div>
                 </div>
 
@@ -315,10 +309,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       onClose();
                       onOpenTracking(code);
                     }}
-                    className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-md shadow-sky-500/20 flex items-center justify-center gap-1.5 cursor-pointer shrink-0 transition-all hover:scale-102 uppercase tracking-wider"
+                    className="w-full sm:w-auto px-5 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold text-xs rounded-full flex items-center justify-center gap-1.5 cursor-pointer shrink-0 transition-all uppercase tracking-wider shadow-xs"
                   >
                     <Truck className="w-4 h-4" />
-                    <span>Rastrear en Vivo Ahora</span>
+                    <span>Rastrear en Vivo</span>
                   </button>
                 )}
               </div>
@@ -327,37 +321,37 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* CASE 1: YAPE / PLIN (QR + Number + Copy + Holder) */}
               {/* ---------------------------------------------------- */}
               {placedOrder.paymentMethod === 'yape_plin' && (
-                <div className="p-4 sm:p-5 rounded-3xl bg-purple-50/60 border border-purple-200 text-left space-y-4 shadow-xs">
-                  <div className="flex items-center justify-between border-b border-purple-200 pb-3">
+                <div className="p-4 sm:p-5 rounded-2xl bg-zinc-50 border border-zinc-200 text-left space-y-4">
+                  <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center border border-purple-200">
+                      <div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center">
                         <QrCode className="w-4 h-4" />
                       </div>
                       <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-slate-900">Pagar con Yape o Plin</h4>
-                        <p className="text-[10px] sm:text-[11px] text-purple-700">Escanea el código QR o transfiere al número</p>
+                        <h4 className="text-xs sm:text-sm font-bold text-black uppercase">Pagar con Yape o Plin</h4>
+                        <p className="text-[11px] text-zinc-500">Escanea el código QR o transfiere al número</p>
                       </div>
                     </div>
-                    <span className="px-2.5 py-1 bg-purple-100 text-purple-800 border border-purple-200 rounded-full text-[10px] font-bold">
+                    <span className="px-2.5 py-1 bg-black text-white rounded-full text-[10px] font-bold uppercase tracking-wider">
                       YAPE / PLIN
                     </span>
                   </div>
 
                   {/* QR Image Presentation */}
-                  <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-2xl border border-purple-100 shadow-2xs">
+                  <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-xl border border-zinc-200">
                     <div className="relative group shrink-0 text-center">
                       <img
                         src={yapeQrToDisplay}
                         alt="Código QR Yape Plin"
-                        className="w-36 h-36 sm:w-40 sm:h-40 rounded-2xl object-cover bg-white p-2 border-2 border-purple-300 shadow-md mx-auto"
+                        className="w-36 h-36 sm:w-40 sm:h-40 rounded-xl object-cover bg-white p-2 border border-zinc-200 shadow-xs mx-auto"
                         referrerPolicy="no-referrer"
                       />
                       <a
                         href={yapeQrToDisplay}
                         target="_blank"
                         rel="noopener noreferrer"
-                        download="QR_Yape_AuraModa.png"
-                        className="mt-2 text-[11px] text-purple-700 hover:text-purple-900 flex items-center justify-center gap-1 font-semibold"
+                        download="QR_Yape.png"
+                        className="mt-2 text-[11px] text-zinc-600 hover:text-black flex items-center justify-center gap-1 font-semibold"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Descargar / Ver QR</span>
@@ -366,14 +360,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
                     <div className="space-y-3 flex-1 text-left w-full">
                       {/* Amount to pay */}
-                      <div className="p-2.5 rounded-xl bg-purple-50 border border-purple-200">
-                        <span className="text-[10px] text-purple-800 uppercase font-semibold">Monto Exacto a Yapear</span>
+                      <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200">
+                        <span className="text-[10px] text-zinc-500 uppercase font-semibold">Monto Exacto a Yapear</span>
                         <div className="flex items-center justify-between">
-                          <span className="text-lg font-black text-purple-900">{settings.currencySymbol} {placedOrder.total.toFixed(2)}</span>
+                          <span className="text-lg font-black text-black">{settings.currencySymbol} {placedOrder.total.toFixed(2)}</span>
                           <button
                             type="button"
                             onClick={() => copyToClipboard(placedOrder.total.toFixed(2), 'yape_amount')}
-                            className="px-2 py-1 bg-white hover:bg-purple-100 text-purple-900 text-[10px] font-bold rounded-lg border border-purple-200 flex items-center gap-1 cursor-pointer shadow-2xs"
+                            className="px-2 py-1 bg-white hover:bg-zinc-100 text-black text-[10px] font-bold rounded-md border border-zinc-200 flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
                           >
                             {copiedKey === 'yape_amount' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                             <span>{copiedKey === 'yape_amount' ? '¡Copiado!' : 'Copiar'}</span>
@@ -383,15 +377,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
                       {/* Phone Number */}
                       <div>
-                        <span className="text-[10px] text-slate-500 block font-medium">Número Yape / Plin:</span>
-                        <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-purple-200 mt-0.5 shadow-2xs">
-                          <span className="text-sm font-black text-purple-950 tracking-wide font-mono">{yapeNumberToDisplay}</span>
+                        <span className="text-[10px] text-zinc-500 block font-medium">Número Yape / Plin:</span>
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-zinc-200 mt-0.5 shadow-2xs">
+                          <span className="text-sm font-black text-black font-mono tracking-wider">{yapeNumberToDisplay}</span>
                           <button
                             type="button"
                             onClick={() => copyToClipboard(yapeNumberToDisplay.replace(/\s/g, ''), 'yape_num')}
-                            className="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-900 border border-purple-200 text-[10px] font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-all active:scale-95 shadow-2xs"
+                            className="px-2.5 py-1 bg-black text-white hover:bg-zinc-800 text-[10px] font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
                           >
-                            {copiedKey === 'yape_num' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                            {copiedKey === 'yape_num' ? <Check className="w-3 h-3 text-white" /> : <Copy className="w-3 h-3 text-zinc-300" />}
                             <span>{copiedKey === 'yape_num' ? '¡Copiado!' : 'Copiar Número'}</span>
                           </button>
                         </div>
@@ -399,24 +393,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
                       {/* Holder */}
                       <div>
-                        <span className="text-[10px] text-slate-500 block font-medium">Titular de la Cuenta:</span>
-                        <p className="text-xs font-bold text-slate-900">{yapeHolderToDisplay}</p>
+                        <span className="text-[10px] text-zinc-500 block font-medium">Titular de la Cuenta:</span>
+                        <p className="text-xs font-bold text-black">{yapeHolderToDisplay}</p>
                       </div>
                     </div>
                   </div>
-
-                  <p className="text-[11px] text-purple-900 bg-purple-100/60 p-2.5 rounded-xl border border-purple-200">
-                    💡 <strong>Pasos:</strong> 1. Abre tu app Yape o Plin. 2. Realiza el pago de <strong>{settings.currencySymbol} {placedOrder.total.toFixed(2)}</strong>. 3. Haz clic abajo para enviar tu captura por WhatsApp.
-                  </p>
 
                   <a
                     href={getYapeProofWhatsAppUrl(settings, placedOrder)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3.5 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-md shadow-purple-900/20 flex items-center justify-center gap-2.5 transition-all hover:scale-101 cursor-pointer uppercase tracking-wider text-center"
+                    className="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm rounded-full flex items-center justify-center gap-2.5 transition-all cursor-pointer uppercase tracking-wider text-center shadow-xs"
                   >
-                    <MessageCircle className="w-5 h-5 fill-white text-purple-900 shrink-0" />
-                    <span>Enviar Comprobante Yape por WhatsApp</span>
+                    <MessageCircle className="w-5 h-5 fill-white text-emerald-900 shrink-0" />
+                    <span>Enviar Comprobante por WhatsApp</span>
                   </a>
                 </div>
               )}
@@ -425,18 +415,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* CASE 2: TRANSFERENCIA BANCARIA (Bank Accounts + Copy) */}
               {/* ---------------------------------------------------- */}
               {placedOrder.paymentMethod === 'transferencia' && (
-                <div className="p-4 sm:p-5 rounded-3xl bg-sky-50/70 border border-sky-200 text-left space-y-4 shadow-xs">
-                  <div className="flex items-center justify-between border-b border-sky-200 pb-3">
+                <div className="p-4 sm:p-5 rounded-2xl bg-zinc-50 border border-zinc-200 text-left space-y-4">
+                  <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center border border-sky-200">
+                      <div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center">
                         <Building2 className="w-4 h-4" />
                       </div>
                       <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-slate-900">Cuentas Bancarias para Transferencia</h4>
-                        <p className="text-[10px] sm:text-[11px] text-sky-700">Copia el número de cuenta y transfiere desde tu banca móvil</p>
+                        <h4 className="text-xs sm:text-sm font-bold text-black uppercase">Cuentas Bancarias</h4>
+                        <p className="text-[11px] text-zinc-500">Transfiere desde tu banca móvil favorita</p>
                       </div>
                     </div>
-                    <span className="text-sky-800 font-extrabold text-sm">
+                    <span className="text-black font-black text-sm">
                       {settings.currencySymbol} {placedOrder.total.toFixed(2)}
                     </span>
                   </div>
@@ -444,44 +434,42 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   {/* Bank Accounts List */}
                   <div className="space-y-3">
                     {bankAccountsToDisplay.map((bank, index) => (
-                      <div key={bank.id || index} className="bg-white p-3.5 rounded-2xl border border-sky-100 space-y-2.5 shadow-2xs">
-                        <div className="flex items-center justify-between">
-                          <span className="font-extrabold text-xs sm:text-sm text-slate-900 flex items-center gap-1.5">
-                            🏦 {bank.bankName}
-                          </span>
-                        </div>
+                      <div key={bank.id || index} className="bg-white p-3.5 rounded-xl border border-zinc-200 space-y-2.5">
+                        <span className="font-bold text-xs sm:text-sm text-black flex items-center gap-1.5">
+                          🏦 {bank.bankName}
+                        </span>
 
                         {/* Account Number */}
-                        <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-sky-100">
+                        <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 border border-zinc-200">
                           <div className="min-w-0 pr-2">
-                            <span className="text-[10px] text-slate-500 block font-medium">N° de Cuenta:</span>
-                            <span className="text-xs sm:text-sm font-mono font-bold text-sky-950 tracking-wide truncate block">
+                            <span className="text-[10px] text-zinc-500 block font-medium">N° de Cuenta:</span>
+                            <span className="text-xs sm:text-sm font-mono font-bold text-black tracking-wide truncate block">
                               {bank.accountNumber}
                             </span>
                           </div>
                           <button
                             type="button"
                             onClick={() => copyToClipboard(bank.accountNumber.replace(/\s/g, ''), `bank_acc_${index}`)}
-                            className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-[10px] font-bold rounded-lg flex items-center gap-1 shrink-0 cursor-pointer transition-all active:scale-95 shadow-2xs"
+                            className="px-2.5 py-1 bg-white hover:bg-zinc-100 text-black border border-zinc-200 text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
                           >
                             {copiedKey === `bank_acc_${index}` ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                            <span>{copiedKey === `bank_acc_${index}` ? '¡Copiado!' : 'Copiar Cuenta'}</span>
+                            <span>{copiedKey === `bank_acc_${index}` ? '¡Copiado!' : 'Copiar'}</span>
                           </button>
                         </div>
 
-                        {/* CCI (Interbank Code) if available */}
+                        {/* CCI if available */}
                         {bank.cci && (
-                          <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-sky-100">
+                          <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 border border-zinc-200">
                             <div className="min-w-0 pr-2">
-                              <span className="text-[10px] text-slate-500 block font-medium">CCI (Interbancario):</span>
-                              <span className="text-xs sm:text-sm font-mono font-bold text-slate-800 tracking-wide truncate block">
+                              <span className="text-[10px] text-zinc-500 block font-medium">CCI (Interbancario):</span>
+                              <span className="text-xs sm:text-sm font-mono font-bold text-zinc-800 tracking-wide truncate block">
                                 {bank.cci}
                               </span>
                             </div>
                             <button
                               type="button"
                               onClick={() => copyToClipboard(bank.cci!.replace(/\s/g, ''), `bank_cci_${index}`)}
-                              className="px-2.5 py-1 bg-white hover:bg-sky-50 text-slate-700 border border-slate-200 text-[10px] font-bold rounded-lg flex items-center gap-1 shrink-0 cursor-pointer transition-all active:scale-95 shadow-2xs"
+                              className="px-2.5 py-1 bg-white hover:bg-zinc-100 text-black border border-zinc-200 text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
                             >
                               {copiedKey === `bank_cci_${index}` ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                               <span>{copiedKey === `bank_cci_${index}` ? '¡Copiado!' : 'Copiar CCI'}</span>
@@ -490,9 +478,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         )}
 
                         {bank.holderName && (
-                          <div className="text-[11px] text-slate-600">
+                          <div className="text-[11px] text-zinc-500">
                             <span>Titular: </span>
-                            <strong className="text-slate-900">{bank.holderName}</strong>
+                            <strong className="text-black">{bank.holderName}</strong>
                           </div>
                         )}
                       </div>
@@ -503,10 +491,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     href={getBankTransferProofWhatsAppUrl(settings, placedOrder)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3.5 px-6 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-md shadow-sky-500/20 flex items-center justify-center gap-2.5 transition-all hover:scale-101 cursor-pointer uppercase tracking-wider text-center"
+                    className="w-full py-3.5 px-6 bg-black hover:bg-zinc-800 text-white font-bold text-xs sm:text-sm rounded-full flex items-center justify-center gap-2.5 transition-all cursor-pointer uppercase tracking-wider text-center shadow-xs"
                   >
-                    <MessageCircle className="w-5 h-5 fill-white text-sky-900 shrink-0" />
-                    <span>Enviar Comprobante de Transferencia por WhatsApp</span>
+                    <MessageCircle className="w-5 h-5 fill-white text-black shrink-0" />
+                    <span>Enviar Comprobante por WhatsApp</span>
                   </a>
                 </div>
               )}
@@ -515,36 +503,31 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* CASE 3: PAGO CONTRA ENTREGA                          */}
               {/* ---------------------------------------------------- */}
               {placedOrder.paymentMethod === 'contra_entrega' && (
-                <div className="p-4 sm:p-5 rounded-3xl bg-emerald-50/70 border border-emerald-200 text-left space-y-4 shadow-xs">
-                  <div className="flex items-center gap-3 border-b border-emerald-200 pb-3">
-                    <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200">
+                <div className="p-4 sm:p-5 rounded-2xl bg-zinc-50 border border-zinc-200 text-left space-y-4">
+                  <div className="flex items-center gap-3 border-b border-zinc-200 pb-3">
+                    <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center">
                       <Truck className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-slate-900">Modalidad Pago Contra Entrega</h4>
-                      <p className="text-xs text-slate-600">Pagas en efectivo o Yape al momento que el repartidor llega a tu puerta</p>
+                      <h4 className="text-sm font-bold text-black uppercase">Pago Contra Entrega</h4>
+                      <p className="text-xs text-zinc-500">Pagas en efectivo o Yape al recibir tu paquete en casa</p>
                     </div>
                   </div>
 
-                  <div className="bg-white p-3.5 rounded-2xl border border-emerald-100 space-y-2 text-xs text-slate-700 shadow-2xs">
+                  <div className="bg-white p-3.5 rounded-xl border border-zinc-200 space-y-2 text-xs text-zinc-700">
                     <p>📍 <strong>Dirección de Entrega:</strong> {placedOrder.shippingAddress}, {placedOrder.city}</p>
-                    <p>💰 <strong>Monto a pagar al recibir:</strong> <span className="font-extrabold text-emerald-800 text-sm">{settings.currencySymbol} {placedOrder.total.toFixed(2)}</span></p>
+                    <p>💰 <strong>Monto a pagar al recibir:</strong> <span className="font-black text-black text-sm">{settings.currencySymbol} {placedOrder.total.toFixed(2)}</span></p>
                     <p>📞 <strong>Teléfono de contacto:</strong> {placedOrder.customerPhone}</p>
                   </div>
-
-                  <p className="text-[11px] text-emerald-900 bg-emerald-100/60 p-2.5 rounded-xl border border-emerald-200 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-                    <span>Redirigiendo a WhatsApp de la tienda para confirmar la fecha y hora de entrega...</span>
-                  </p>
 
                   <a
                     href={getContraEntregaWhatsAppUrl(settings, placedOrder)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-md shadow-emerald-900/20 flex items-center justify-center gap-2.5 transition-all hover:scale-101 cursor-pointer uppercase tracking-wider text-center"
+                    className="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-full flex items-center justify-center gap-2.5 transition-all cursor-pointer uppercase tracking-wider text-center shadow-xs"
                   >
                     <MessageCircle className="w-5 h-5 fill-white text-emerald-800 shrink-0" />
-                    <span>Confirmar Entrega en WhatsApp Ahora</span>
+                    <span>Confirmar Entrega en WhatsApp</span>
                   </a>
                 </div>
               )}
@@ -553,8 +536,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* CASE 4: COORDINAR POR WHATSAPP (General)             */}
               {/* ---------------------------------------------------- */}
               {placedOrder.paymentMethod === 'whatsapp' && (
-                <div className="p-4 sm:p-5 rounded-3xl bg-sky-50 border border-sky-100 text-left space-y-4 shadow-xs">
-                  <div className="bg-white p-3.5 rounded-2xl border border-sky-100 space-y-2 text-xs text-slate-700 shadow-2xs">
+                <div className="p-4 sm:p-5 rounded-2xl bg-zinc-50 border border-zinc-200 text-left space-y-4">
+                  <div className="bg-white p-3.5 rounded-xl border border-zinc-200 space-y-2 text-xs text-zinc-700">
                     <p>📍 <strong>Destino:</strong> {placedOrder.shippingAddress}, {placedOrder.city}</p>
                     <p>📱 <strong>Teléfono de contacto:</strong> {placedOrder.customerPhone}</p>
                     <p>💳 <strong>Método:</strong> {formatPaymentMethod(placedOrder.paymentMethod)}</p>
@@ -564,10 +547,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     href={getOrderWhatsAppUrl(settings, placedOrder)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-md shadow-emerald-900/20 flex items-center justify-center gap-3 transition-all hover:scale-101 cursor-pointer text-center"
+                    className="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-full flex items-center justify-center gap-3 transition-all cursor-pointer text-center shadow-xs uppercase tracking-wider"
                   >
                     <MessageCircle className="w-5 h-5 fill-white text-emerald-800 shrink-0" />
-                    <span>Enviar Pedido a WhatsApp para Despacho</span>
+                    <span>Enviar Pedido a WhatsApp</span>
                   </a>
                 </div>
               )}
@@ -576,7 +559,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-2xl transition-colors border border-slate-200 cursor-pointer shadow-2xs"
+                  className="w-full py-3 bg-zinc-100 hover:bg-zinc-200 text-black text-xs font-bold rounded-full transition-colors cursor-pointer uppercase tracking-wider"
                 >
                   Volver a la tienda
                 </button>
@@ -587,48 +570,46 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <form onSubmit={handleSubmit} className="space-y-4">
               
               {/* Order Summary Strip */}
-              <div className="p-3 rounded-2xl bg-sky-50 border border-sky-200 flex flex-col gap-2 text-xs shadow-2xs">
+              <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 flex flex-col gap-2 text-xs">
                 <div className="flex items-center justify-between">
                   <div className="min-w-0">
-                    <span className="text-slate-600 text-[11px] block font-medium">Total a pagar ({cart.length} productos):</span>
-                    <p className="text-base font-extrabold text-sky-800 truncate">
+                    <span className="text-zinc-500 text-[11px] block font-medium">Total a pagar ({cart.length} productos):</span>
+                    <p className="text-base font-black text-black">
                       {settings.currencySymbol} {total.toFixed(2)}
                     </p>
                   </div>
                   <span className="text-emerald-700 font-bold text-[10px] sm:text-[11px] bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 shrink-0">
-                    {isFreeShipping ? 'Envío Gratis 🎉' : `Envío: ${settings.currencySymbol} ${shippingCost.toFixed(2)}`}
+                    {isFreeShipping ? 'Envío Gratis' : `Envío: ${settings.currencySymbol} ${shippingCost.toFixed(2)}`}
                   </span>
                 </div>
                 {discount > 0 && promoCode && (
-                  <div className="flex items-center justify-between text-[11px] text-emerald-800 font-semibold bg-emerald-100/60 px-2.5 py-1.5 rounded-xl border border-emerald-300/80">
-                    <span className="flex items-center gap-1">
-                      <span>🏷️ Cupón de Sorteo (<strong className="font-mono">{promoCode}</strong>):</span>
-                    </span>
-                    <span className="font-bold text-emerald-900">-{settings.currencySymbol} {discount.toFixed(2)}</span>
+                  <div className="flex items-center justify-between text-[11px] text-emerald-800 font-semibold bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-200">
+                    <span>Cupón Aplicado ({promoCode}):</span>
+                    <span className="font-bold">-{settings.currencySymbol} {discount.toFixed(2)}</span>
                   </div>
                 )}
               </div>
 
               {/* Customer Personal Details */}
               <div className="space-y-2.5">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-sky-800 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-sky-600" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-black flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-zinc-600" />
                   <span>Datos del Cliente</span>
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
-                    <label className="block text-[11px] text-slate-700 mb-1 font-semibold">Nombre y Apellido *</label>
+                    <label className="block text-[11px] text-zinc-700 mb-1 font-semibold">Nombre y Apellido *</label>
                     <input
                       type="text"
-                      placeholder="Ej. Juan Pérez Ramos"
+                      placeholder="Ej. Juan Pérez"
                       value={customerName}
                       onChange={(e) => {
                         setCustomerName(e.target.value);
                         if (formErrors.customerName) setFormErrors({ ...formErrors, customerName: '' });
                       }}
-                      className={`w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs ${
-                        formErrors.customerName ? 'border-rose-500' : 'border-sky-200'
+                      className={`w-full px-3 py-2 bg-zinc-50 border rounded-xl text-xs text-black placeholder-zinc-400 focus:outline-none focus:bg-white focus:border-black transition-colors ${
+                        formErrors.customerName ? 'border-rose-500' : 'border-zinc-200'
                       }`}
                     />
                     {formErrors.customerName && (
@@ -637,17 +618,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] text-slate-700 mb-1 font-semibold">WhatsApp / Teléfono *</label>
+                    <label className="block text-[11px] text-zinc-700 mb-1 font-semibold">WhatsApp / Teléfono *</label>
                     <input
                       type="tel"
-                      placeholder="Ej. 987654321 o +51 987..."
+                      placeholder="Ej. 987654321"
                       value={customerPhone}
                       onChange={(e) => {
                         setCustomerPhone(e.target.value);
                         if (formErrors.customerPhone) setFormErrors({ ...formErrors, customerPhone: '' });
                       }}
-                      className={`w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs ${
-                        formErrors.customerPhone ? 'border-rose-500' : 'border-sky-200'
+                      className={`w-full px-3 py-2 bg-zinc-50 border rounded-xl text-xs text-black placeholder-zinc-400 focus:outline-none focus:bg-white focus:border-black transition-colors ${
+                        formErrors.customerPhone ? 'border-rose-500' : 'border-zinc-200'
                       }`}
                     />
                     {formErrors.customerPhone && (
@@ -657,27 +638,27 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] text-slate-700 mb-1 font-semibold">Correo Electrónico (Opcional)</label>
+                  <label className="block text-[11px] text-zinc-700 mb-1 font-semibold">Correo Electrónico (Opcional)</label>
                   <input
                     type="email"
                     placeholder="cliente@ejemplo.com"
                     value={customerEmail}
                     onChange={(e) => setCustomerEmail(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-sky-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs"
+                    className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-black placeholder-zinc-400 focus:outline-none focus:bg-white focus:border-black transition-colors"
                   />
                 </div>
               </div>
 
               {/* Shipping Address */}
-              <div className="space-y-2.5 pt-2 border-t border-sky-100">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-sky-800 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-sky-600" />
+              <div className="space-y-2.5 pt-2 border-t border-zinc-100">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-black flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-zinc-600" />
                   <span>Dirección de Despacho</span>
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <div className="sm:col-span-2">
-                    <label className="block text-[11px] text-slate-700 mb-1 font-semibold">Dirección / Calle / N° / Dpto *</label>
+                    <label className="block text-[11px] text-zinc-700 mb-1 font-semibold">Dirección / Calle / N° / Dpto *</label>
                     <input
                       type="text"
                       placeholder="Ej. Av. Larco 450 Dpto 302"
@@ -686,8 +667,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         setShippingAddress(e.target.value);
                         if (formErrors.shippingAddress) setFormErrors({ ...formErrors, shippingAddress: '' });
                       }}
-                      className={`w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs ${
-                        formErrors.shippingAddress ? 'border-rose-500' : 'border-sky-200'
+                      className={`w-full px-3 py-2 bg-zinc-50 border rounded-xl text-xs text-black placeholder-zinc-400 focus:outline-none focus:bg-white focus:border-black transition-colors ${
+                        formErrors.shippingAddress ? 'border-rose-500' : 'border-zinc-200'
                       }`}
                     />
                     {formErrors.shippingAddress && (
@@ -696,7 +677,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] text-slate-700 mb-1 font-semibold">Ciudad / Distrito *</label>
+                    <label className="block text-[11px] text-zinc-700 mb-1 font-semibold">Ciudad / Distrito *</label>
                     <input
                       type="text"
                       placeholder="Ej. Miraflores, Lima"
@@ -705,35 +686,32 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         setCity(e.target.value);
                         if (formErrors.city) setFormErrors({ ...formErrors, city: '' });
                       }}
-                      className={`w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs ${
-                        formErrors.city ? 'border-rose-500' : 'border-sky-200'
+                      className={`w-full px-3 py-2 bg-zinc-50 border rounded-xl text-xs text-black placeholder-zinc-400 focus:outline-none focus:bg-white focus:border-black transition-colors ${
+                        formErrors.city ? 'border-rose-500' : 'border-zinc-200'
                       }`}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] text-slate-700 mb-1 font-semibold">Notas o Referencias de Entrega (Opcional)</label>
+                  <label className="block text-[11px] text-zinc-700 mb-1 font-semibold">Notas o Referencias (Opcional)</label>
                   <input
                     type="text"
-                    placeholder="Ej. Dejar en conserjería, timbre 2B, etc."
+                    placeholder="Ej. Dejar en conserjería"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-sky-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs"
+                    className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-black placeholder-zinc-400 focus:outline-none focus:bg-white focus:border-black transition-colors"
                   />
                 </div>
               </div>
 
               {/* Shipping Method Options Selector */}
               {activeShippingOptions.length > 0 && (
-                <div className="space-y-2.5 pt-2 border-t border-sky-100">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-sky-800 flex items-center justify-between">
+                <div className="space-y-2.5 pt-2 border-t border-zinc-100">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-black flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
-                      <Truck className="w-3.5 h-3.5 text-sky-600" />
-                      <span>Método de Envío y Despacho</span>
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-normal">
-                      (Elige tu método de entrega)
+                      <Truck className="w-3.5 h-3.5 text-zinc-600" />
+                      <span>Método de Envío</span>
                     </span>
                   </h3>
 
@@ -747,10 +725,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                           key={opt.id}
                           type="button"
                           onClick={() => setSelectedShippingId(opt.id)}
-                          className={`p-2.5 sm:p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                             isSelected
-                              ? 'bg-sky-50 border-sky-500 text-sky-950 ring-1 ring-sky-500 shadow-2xs'
-                              : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-sky-50/40 hover:border-sky-300'
+                              ? 'bg-zinc-100 border-black text-black font-bold ring-1 ring-black'
+                              : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-1.5 w-full">
@@ -758,22 +736,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                             <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 ${
                               isFreeForThis
                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                : 'bg-sky-100 text-sky-800 border border-sky-200'
+                                : 'bg-zinc-200 text-zinc-800'
                             }`}>
                               {isFreeForThis ? 'GRATIS' : `${settings.currencySymbol} ${opt.price.toFixed(2)}`}
                             </span>
                           </div>
 
-                          <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-500 font-medium">
-                            <Clock className="w-3 h-3 text-sky-500 shrink-0" />
+                          <div className="mt-1 flex items-center gap-1 text-[10px] text-zinc-500 font-medium">
+                            <Clock className="w-3 h-3 text-zinc-400 shrink-0" />
                             <span>{opt.estimatedTime}</span>
                           </div>
-
-                          {opt.description && (
-                            <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
-                              {opt.description}
-                            </p>
-                          )}
                         </button>
                       );
                     })}
@@ -781,36 +753,33 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               )}
 
-              {/* Payment Method Selector (No Tarjetas) */}
-              <div className="space-y-2.5 pt-2 border-t border-sky-100">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-sky-800 flex items-center justify-between">
+              {/* Payment Method Selector */}
+              <div className="space-y-2.5 pt-2 border-t border-zinc-100">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-black flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
-                    <CreditCard className="w-3.5 h-3.5 text-sky-600" />
+                    <CreditCard className="w-3.5 h-3.5 text-zinc-600" />
                     <span>Método de Pago</span>
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-normal">
-                    (QR y cuentas bancarias al confirmar)
                   </span>
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {[
-                    { id: 'yape_plin' as const, label: '📱 Yape / Plin', desc: 'QR y número directo' },
-                    { id: 'transferencia' as const, label: '🏦 Transferencia', desc: 'BCP, BBVA, Interbank' },
-                    { id: 'contra_entrega' as const, label: '📦 Contra Entrega', desc: 'Paga al recibir' },
+                    { id: 'yape_plin' as const, label: '📱 Yape / Plin', desc: 'QR o número' },
+                    { id: 'transferencia' as const, label: '🏦 Transferencia', desc: 'Bancos nacionales' },
+                    { id: 'contra_entrega' as const, label: '📦 Contra Entrega', desc: 'Pagas al recibir' },
                   ].map((m) => (
                     <button
                       key={m.id}
                       type="button"
                       onClick={() => setPaymentMethod(m.id)}
-                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                         paymentMethod === m.id
-                          ? 'bg-sky-50 border-sky-500 text-sky-900 ring-1 ring-sky-500 font-bold shadow-xs'
-                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-sky-50/50 hover:text-slate-900 hover:border-sky-300'
+                          ? 'bg-zinc-100 border-black text-black font-bold ring-1 ring-black'
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100'
                       }`}
                     >
                       <p className="text-xs font-bold">{m.label}</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">{m.desc}</p>
+                      <p className="text-[10px] text-zinc-500 mt-0.5">{m.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -821,7 +790,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 px-4 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold rounded-2xl flex items-center justify-center gap-2 shadow-md shadow-sky-500/20 text-xs sm:text-sm transition-all hover:scale-101 active:scale-98 disabled:opacity-50 cursor-pointer uppercase tracking-wider"
+                  className="w-full py-3.5 px-4 bg-black hover:bg-zinc-800 text-white font-black rounded-full flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-xs"
                 >
                   {isSubmitting ? (
                     <span>Procesando pedido...</span>
@@ -832,8 +801,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     </>
                   )}
                 </button>
-                <p className="text-[10px] sm:text-[11px] text-slate-500 text-center mt-2 flex items-center justify-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <p className="text-[10px] sm:text-[11px] text-zinc-400 text-center mt-2 flex items-center justify-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
                   <span>Tu pedido será registrado y coordinado directamente con la tienda vía WhatsApp</span>
                 </p>
               </div>

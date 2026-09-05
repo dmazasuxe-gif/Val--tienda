@@ -8,7 +8,11 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  Ruler
+  ChevronDown,
+  ChevronUp,
+  ShieldCheck,
+  CreditCard,
+  Truck
 } from 'lucide-react';
 import { getProductWhatsAppUrl } from '../utils/whatsapp';
 
@@ -18,6 +22,8 @@ interface ProductDetailModalProps {
   onClose: () => void;
   settings: StoreSettings;
   onAddToCart: (product: Product, size: string, color: ProductColor, quantity: number) => void;
+  recommendedProducts?: Product[];
+  onOpenProduct?: (product: Product) => void;
 }
 
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
@@ -25,14 +31,18 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   isOpen = true,
   onClose,
   settings,
-  onAddToCart
+  onAddToCart,
+  recommendedProducts = [],
+  onOpenProduct
 }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>(product?.sizes?.[0] || '');
   const [selectedColor, setSelectedColor] = useState<ProductColor>(product?.colors?.[0] || { name: 'Estándar', hex: '#000000' });
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<'detalles' | 'materiales' | 'tallas' | 'envios'>('detalles');
   const [addedSuccess, setAddedSuccess] = useState(false);
+
+  // Accordion open/close states matching Yolu Screenshot 8
+  const [openAccordion, setOpenAccordion] = useState<string | null>('envios');
 
   // Sync state when product changes
   React.useEffect(() => {
@@ -41,7 +51,6 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
       setSelectedSize(product.sizes?.[0] || '');
       setSelectedColor(product.colors?.[0] || { name: 'Estándar', hex: '#000000' });
       setQuantity(1);
-      setActiveTab('detalles');
     }
   }, [product?.id]);
 
@@ -78,354 +87,397 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     setSelectedImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
   };
 
+  const toggleAccordion = (section: string) => {
+    setOpenAccordion(openAccordion === section ? null : section);
+  };
+
+  // Filter recommendations (different from current product)
+  const related = recommendedProducts
+    .filter((p) => p.id !== product.id && (p.category === product.category || p.gender === product.gender))
+    .slice(0, 4);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/50 backdrop-blur-sm overflow-y-auto animate-fade-in">
-      {/* Click outside to close */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fade-in select-none">
+      {/* Click outside backdrop */}
       <div className="fixed inset-0" onClick={onClose} />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-4xl bg-white border border-sky-100 rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col my-auto max-h-[95vh] text-slate-800">
+      <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col my-auto max-h-[96vh] text-zinc-900 border border-zinc-200">
         
-        {/* Header Bar */}
-        <div className="p-3.5 sm:p-4 border-b border-sky-100 flex items-center justify-between bg-sky-50/60 shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-sky-700 uppercase tracking-widest px-3 py-1 bg-sky-100/80 border border-sky-200 rounded-full">
-              {product.brand} • {product.category.toUpperCase()} ({product.gender.toUpperCase()})
-            </span>
-            <span className="text-xs text-slate-400 hidden sm:inline">SKU: {product.sku}</span>
-          </div>
+        {/* Top Floating Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-black flex items-center justify-center transition-colors cursor-pointer"
+          aria-label="Cerrar modal"
+        >
+          <X className="w-5 h-5" />
+        </button>
 
-          <button
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Modal Body - 2 Columns on Tablet/Desktop */}
-        <div className="overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 p-4 sm:p-6">
+        {/* Scrollable Modal Body */}
+        <div className="overflow-y-auto flex-1 p-4 sm:p-8 space-y-8">
           
-          {/* Column 1: Multi-Image Gallery */}
-          <div className="space-y-3">
-            <div className="relative aspect-square sm:aspect-[4/4.5] rounded-2xl overflow-hidden bg-slate-50 border border-sky-100">
-              <img
-                src={product.images[selectedImageIndex] || product.images[0]}
-                alt={product.name}
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-
-              {/* Prev / Next controls */}
-              {product.images.length > 1 && (
-                <>
-                  <button
-                    onClick={prevImage}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white text-slate-800 backdrop-blur-md transition-all border border-sky-100 shadow-md cursor-pointer"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={nextImage}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white text-slate-800 backdrop-blur-md transition-all border border-sky-100 shadow-md cursor-pointer"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </>
-              )}
-
-              {/* Tags on Image */}
-              <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                {hasDiscount && (
-                  <span className="bg-rose-600 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-sm">
-                    AHORRA {discountPercent}%
-                  </span>
-                )}
-                {product.isNew && (
-                  <span className="bg-sky-600 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-sm">
-                    NUEVA COLECCIÓN
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Thumbnail selector */}
-            {product.images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-                {product.images.map((imgUrl, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
-                      selectedImageIndex === idx
-                        ? 'border-sky-500 scale-95 shadow-md shadow-sky-500/20'
-                        : 'border-slate-200 opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={imgUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Stock Alert Badge */}
-            <div className="p-3 rounded-2xl bg-slate-50 border border-sky-100 flex items-center justify-between">
-              <span className="text-xs text-slate-600 font-semibold">Disponibilidad en Almacén:</span>
-              {isOutOfStock ? (
-                <span className="text-xs font-bold text-rose-700 flex items-center gap-1.5 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Sin stock por el momento</span>
-                </span>
-              ) : isLowStock ? (
-                <span className="text-xs font-bold text-amber-800 flex items-center gap-1.5 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 animate-pulse">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                  <span>¡Solo quedan {product.stock} unidades!</span>
-                </span>
-              ) : (
-                <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Stock Disponible ({product.stock})</span>
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Column 2: Product Config & Buy Section */}
-          <div className="flex flex-col justify-between space-y-4">
+          {/* Main 2-Column Product Layout matching Screenshots 7 & 8 */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-10">
             
-            <div className="space-y-4">
-              <div>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-snug font-['Playfair_Display',serif]">
+            {/* Left Column (5 cols): Thumbnail list + Main Image Viewport */}
+            <div className="md:col-span-6 flex gap-3 sm:gap-4">
+              
+              {/* Vertical Thumbnails List (left of main image, exactly as Yolu) */}
+              {product.images.length > 1 && (
+                <div className="flex flex-col gap-2 shrink-0">
+                  {product.images.map((imgUrl, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedImageIndex(idx)}
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-[#f4f4f5] border transition-all cursor-pointer p-1 ${
+                        selectedImageIndex === idx
+                          ? 'border-black ring-1 ring-black'
+                          : 'border-transparent opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt=""
+                        className="w-full h-full object-contain"
+                        referrerPolicy="no-referrer"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Main Image Container */}
+              <div className="relative flex-1 aspect-square rounded-2xl bg-[#f4f4f5] flex items-center justify-center p-6 overflow-hidden">
+                <img
+                  src={product.images[selectedImageIndex] || product.images[0]}
+                  alt={product.name}
+                  className="w-full h-full object-contain"
+                  referrerPolicy="no-referrer"
+                />
+
+                {/* Arrow Controls */}
+                {product.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-black shadow-xs flex items-center justify-center transition-all cursor-pointer"
+                      aria-label="Foto anterior"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-black shadow-xs flex items-center justify-center transition-all cursor-pointer"
+                      aria-label="Foto siguiente"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+            </div>
+
+            {/* Right Column (6-7 cols): Product Information & Buying Actions */}
+            <div className="md:col-span-6 flex flex-col justify-between space-y-5">
+              
+              <div className="space-y-4">
+                {/* Title */}
+                <h1 className="text-xl sm:text-2xl font-black text-black tracking-tight font-sans">
                   {product.name}
                 </h1>
 
-                {/* Price Display */}
-                <div className="flex items-baseline gap-3 mt-2">
-                  <span className="text-2xl sm:text-3xl font-black text-sky-700">
+                {/* Price Display matching Yolu */}
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl sm:text-3xl font-black text-black font-sans">
                     {settings.currencySymbol} {product.price.toFixed(2)}
                   </span>
                   {hasDiscount && (
-                    <span className="text-sm sm:text-base text-slate-400 line-through">
+                    <span className="text-sm sm:text-base text-zinc-400 line-through">
                       {settings.currencySymbol} {product.originalPrice!.toFixed(2)}
                     </span>
                   )}
                   {hasDiscount && (
-                    <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
-                      Ahorras {settings.currencySymbol} {(product.originalPrice! - product.price).toFixed(2)}
+                    <span className="text-[11px] font-black uppercase tracking-wider text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-md">
+                      PRECIO FINAL
                     </span>
                   )}
                 </div>
-              </div>
 
-              {/* Size Selector */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <Ruler className="w-3.5 h-3.5 text-sky-600" />
-                    <span>Seleccionar Talla:</span>
-                  </label>
-                  <span className="text-xs text-sky-700 font-bold">{selectedSize}</span>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((sz) => (
-                    <button
-                      key={sz}
-                      onClick={() => setSelectedSize(sz)}
-                      className={`min-w-11 h-10 px-3 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
-                        selectedSize === sz
-                          ? 'bg-sky-600 text-white border-sky-600 shadow-md font-black scale-105'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-sky-300 hover:bg-sky-50/50'
-                      }`}
-                    >
-                      {sz}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Color Selector */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <span>Color Seleccionado:</span>
-                  </label>
-                  <span className="text-xs text-sky-700 font-bold">{selectedColor.name}</span>
-                </div>
-
-                <div className="flex flex-wrap gap-2.5">
-                  {product.colors.map((clr, i) => {
-                    const isSelected = selectedColor.name === clr.name;
-                    return (
+                {/* Size Selector matching Yolu screenshot 7 */}
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-extrabold uppercase tracking-wider text-black">
+                      TALLAS EUR
+                    </span>
+                    {selectedSize && (
                       <button
-                        key={i}
-                        onClick={() => setSelectedColor(clr)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-sky-50 border-sky-500 text-sky-900 ring-1 ring-sky-500 font-bold shadow-2xs'
-                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:text-slate-900 hover:border-sky-300'
-                        }`}
+                        onClick={() => setSelectedSize('')}
+                        className="text-zinc-400 hover:text-black text-xs font-semibold cursor-pointer underline"
                       >
-                        <span
-                          className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0"
-                          style={{ backgroundColor: clr.hex }}
-                        />
-                        <span>{clr.name}</span>
+                        Limpiar
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
+                    )}
+                  </div>
 
-              {/* Quantity Stepper */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                  Cantidad:
-                </label>
-                <div className="inline-flex items-center bg-slate-50 border border-sky-200 rounded-xl p-1 shadow-2xs">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                    className="w-8 h-8 rounded-lg bg-white hover:bg-sky-50 text-slate-800 font-bold flex items-center justify-center disabled:opacity-30 transition-colors border border-sky-100 cursor-pointer"
-                  >
-                    -
-                  </button>
-                  <span className="w-12 text-center text-sm font-bold text-slate-900">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                    disabled={quantity >= product.stock}
-                    className="w-8 h-8 rounded-lg bg-white hover:bg-sky-50 text-slate-800 font-bold flex items-center justify-center disabled:opacity-30 transition-colors border border-sky-100 cursor-pointer"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Tab Navigation for Detailed Info */}
-              <div className="pt-2">
-                <div className="flex border-b border-sky-100 gap-2 text-xs font-semibold">
-                  <button
-                    onClick={() => setActiveTab('detalles')}
-                    className={`pb-2 border-b-2 transition-colors cursor-pointer ${
-                      activeTab === 'detalles' ? 'border-sky-600 text-sky-700' : 'border-transparent text-slate-400 hover:text-slate-700'
-                    }`}
-                  >
-                    Descripción
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('materiales')}
-                    className={`pb-2 border-b-2 transition-colors cursor-pointer ${
-                      activeTab === 'materiales' ? 'border-sky-600 text-sky-700' : 'border-transparent text-slate-400 hover:text-slate-700'
-                    }`}
-                  >
-                    Materiales & Cuidado
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('tallas')}
-                    className={`pb-2 border-b-2 transition-colors cursor-pointer ${
-                      activeTab === 'tallas' ? 'border-sky-600 text-sky-700' : 'border-transparent text-slate-400 hover:text-slate-700'
-                    }`}
-                  >
-                    Guía de Tallas
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('envios')}
-                    className={`pb-2 border-b-2 transition-colors cursor-pointer ${
-                      activeTab === 'envios' ? 'border-sky-600 text-sky-700' : 'border-transparent text-slate-400 hover:text-slate-700'
-                    }`}
-                  >
-                    Envíos
-                  </button>
+                  {/* Size buttons grid */}
+                  <div className="flex flex-wrap gap-2">
+                    {product.sizes.map((sz) => {
+                      const isSelected = selectedSize === sz;
+                      return (
+                        <button
+                          key={sz}
+                          onClick={() => setSelectedSize(sz)}
+                          className={`min-w-11 h-10 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                            isSelected
+                              ? 'bg-black text-white border-black font-black'
+                              : 'bg-white text-zinc-800 border-zinc-200 hover:border-black'
+                          }`}
+                        >
+                          {sz}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div className="py-3 text-xs text-slate-600 leading-relaxed min-h-[60px]">
-                  {activeTab === 'detalles' && (
-                    <p>{product.description}</p>
-                  )}
-                  {activeTab === 'materiales' && (
-                    <div className="space-y-1.5">
-                      <p><strong>Composición:</strong> {product.materials || 'Materiales premium seleccionados de alta resistencia.'}</p>
-                      {product.careGuide && <p><strong>Cuidados:</strong> {product.careGuide}</p>}
+                {/* Color Selector */}
+                {product.colors && product.colors.length > 0 && (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-extrabold uppercase tracking-wider text-black">
+                        COLOR: <span className="font-semibold text-zinc-600">{selectedColor.name}</span>
+                      </span>
                     </div>
-                  )}
-                  {activeTab === 'tallas' && (
-                    <div className="space-y-1">
-                      <p className="font-semibold text-sky-800">¿Dudas con la talla perfecta?</p>
-                      <p>Nuestras hormas son estándar internacionales. Si estás entre dos tallas de calzado o prefieres ropa holgada, recomendamos seleccionar una talla superior o consultarnos por WhatsApp.</p>
+                    <div className="flex flex-wrap gap-2">
+                      {product.colors.map((clr, i) => {
+                        const isSelected = selectedColor.name === clr.name;
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => setSelectedColor(clr)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-black text-white border-black'
+                                : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:border-black'
+                            }`}
+                          >
+                            <span
+                              className="w-3 h-3 rounded-full border border-zinc-300 shrink-0"
+                              style={{ backgroundColor: clr.hex }}
+                            />
+                            <span>{clr.name}</span>
+                          </button>
+                        );
+                      })}
                     </div>
-                  )}
-                  {activeTab === 'envios' && (
-                    <div className="space-y-3">
-                      {(settings.shippingOptions && settings.shippingOptions.length > 0) ? (
-                        settings.shippingOptions.filter(opt => opt.isActive).map(opt => (
-                          <div key={opt.id} className="flex gap-2 text-sm text-slate-700">
-                            <span className="shrink-0 text-sky-600">📦</span>
-                            <div>
-                              <strong>{opt.name}:</strong> <span className="text-slate-600">{opt.description}</span>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-slate-600">Por favor, consulta las opciones de envío al realizar tu pedido.</p>
-                      )}
-                      
-                      {settings.freeShippingThreshold > 0 && (
-                        <div className="flex gap-2 text-sm text-emerald-700 mt-2 p-2 bg-emerald-50 rounded-lg border border-emerald-100">
-                          <span className="shrink-0">✨</span>
-                          <div>
-                            <strong>Envío Gratis:</strong> En compras superiores a {settings.currencySymbol} {settings.freeShippingThreshold}.
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-            </div>
-
-            {/* CTAs: WhatsApp Direct Advice + Add to Cart */}
-            <div className="space-y-2.5 pt-2 border-t border-sky-100">
-              
-              {/* WhatsApp direct consultation */}
-              <a
-                href={whatsAppProductUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-3 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold rounded-2xl flex items-center justify-center gap-2 shadow-xs transition-all hover:scale-101 active:scale-98 text-xs sm:text-sm"
-              >
-                <MessageCircle className="w-5 h-5 fill-emerald-600 text-emerald-600" />
-                <span>Consultar dudas con un Asesor por WhatsApp</span>
-              </a>
-
-              {/* Add to Cart button */}
-              <button
-                onClick={handleAddToCart}
-                disabled={isOutOfStock}
-                className={`w-full py-3.5 px-4 font-bold rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all text-xs sm:text-sm ${
-                  isOutOfStock
-                    ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                    : addedSuccess
-                    ? 'bg-emerald-600 text-white font-bold shadow-emerald-500/20'
-                    : 'bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white shadow-sky-500/25 hover:scale-101 active:scale-99 cursor-pointer'
-                }`}
-              >
-                {addedSuccess ? (
-                  <>
-                    <Check className="w-5 h-5" />
-                    <span>¡Producto Agregado al Carrito!</span>
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag className="w-5 h-5" />
-                    <span>{isOutOfStock ? 'Producto Agotado' : `Agregar al Carrito • ${settings.currencySymbol} ${(product.price * quantity).toFixed(2)}`}</span>
-                  </>
+                  </div>
                 )}
-              </button>
+
+                {/* Quantity Stepper */}
+                <div className="pt-2">
+                  <label className="block text-xs font-extrabold uppercase tracking-wider text-black mb-2">
+                    CANTIDAD
+                  </label>
+                  <div className="inline-flex items-center border border-zinc-300 rounded-lg p-1 bg-white">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                      className="w-8 h-8 rounded hover:bg-zinc-100 text-black font-bold flex items-center justify-center disabled:opacity-30 cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <span className="w-12 text-center text-sm font-bold text-black">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                      disabled={quantity >= product.stock}
+                      className="w-8 h-8 rounded hover:bg-zinc-100 text-black font-bold flex items-center justify-center disabled:opacity-30 cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Primary CTA Button matching Yolu */}
+                <div className="pt-3 space-y-2.5">
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={isOutOfStock}
+                    className={`w-full py-3.5 px-6 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-200 shadow-sm ${
+                      isOutOfStock
+                        ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+                        : addedSuccess
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-black hover:bg-zinc-800 text-white hover:scale-[1.01] active:scale-[0.99] cursor-pointer'
+                    }`}
+                    id="btn-modal-add-to-cart"
+                  >
+                    {addedSuccess ? (
+                      <>
+                        <Check className="w-5 h-5" />
+                        <span>¡AÑADIDO AL CARRITO!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag className="w-5 h-5" />
+                        <span>{isOutOfStock ? 'PRODUCTO AGOTADO' : 'AÑADIR AL CARRITO'}</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* WhatsApp Support Direct Button */}
+                  <a
+                    href={whatsAppProductUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 px-4 rounded-xl border border-zinc-200 hover:border-black text-zinc-800 hover:text-black text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                    id="btn-modal-whatsapp-advisor"
+                  >
+                    <MessageCircle className="w-4 h-4 text-emerald-600 fill-emerald-600" />
+                    <span>Consultar disponibilidad por WhatsApp</span>
+                  </a>
+                </div>
+
+                {/* Product Meta Details */}
+                <div className="pt-4 border-t border-zinc-200 space-y-1.5 text-xs text-zinc-600">
+                  <p className="leading-relaxed">{product.description}</p>
+                  <p className="pt-1">
+                    <strong className="text-black">Color que se muestra:</strong> {selectedColor.name}
+                  </p>
+                  <p>
+                    <strong className="text-black">Estilo:</strong> {product.sku}
+                  </p>
+                  <p>
+                    <strong className="text-black">Marca:</strong> {product.brand}
+                  </p>
+                </div>
+
+                {/* Collapsible Accordions matching Yolu Screenshot 8 */}
+                <div className="pt-2 border-t border-zinc-200 divide-y divide-zinc-200 text-xs">
+                  
+                  {/* Métodos de Pago */}
+                  <div>
+                    <button
+                      onClick={() => toggleAccordion('pago')}
+                      className="w-full py-3.5 flex items-center justify-between font-extrabold uppercase tracking-wider text-black hover:text-zinc-600 text-left cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-zinc-700" />
+                        <span>MÉTODOS DE PAGO</span>
+                      </span>
+                      {openAccordion === 'pago' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                    {openAccordion === 'pago' && (
+                      <div className="pb-3 text-zinc-600 space-y-1 leading-relaxed">
+                        <p>Aceptamos pagos a través de <strong>Yape</strong>, <strong>Plin</strong>, transferencia bancaria directa (BCP, Interbank, BBVA) y pago con tarjetas de débito/crédito.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Opciones de Envío */}
+                  <div>
+                    <button
+                      onClick={() => toggleAccordion('envios')}
+                      className="w-full py-3.5 flex items-center justify-between font-extrabold uppercase tracking-wider text-black hover:text-zinc-600 text-left cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-zinc-700" />
+                        <span>OPCIONES DE ENVÍO</span>
+                      </span>
+                      {openAccordion === 'envios' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                    {openAccordion === 'envios' && (
+                      <div className="pb-3 text-zinc-600 space-y-1.5 leading-relaxed">
+                        <p>• <strong>Lima Metropolitana:</strong> Entrega estándar en 24 a 48 horas hábiles.</p>
+                        <p>• <strong>Provincias a nivel nacional:</strong> Despachos vía Olva Courier / Shalom con guía oficial de rastreo en 2 a 4 días.</p>
+                        {settings.freeShippingThreshold > 0 && (
+                          <p className="text-emerald-700 font-bold">
+                            • ¡Envío gratis a todo el Perú en compras mayores a {settings.currencySymbol} {settings.freeShippingThreshold}!
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Autenticidad Garantizada */}
+                  <div>
+                    <button
+                      onClick={() => toggleAccordion('autenticidad')}
+                      className="w-full py-3.5 flex items-center justify-between font-extrabold uppercase tracking-wider text-black hover:text-zinc-600 text-left cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-zinc-700" />
+                        <span>AUTENTICIDAD GARANTIZADA</span>
+                      </span>
+                      {openAccordion === 'autenticidad' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                    {openAccordion === 'autenticidad' && (
+                      <div className="pb-3 text-zinc-600 space-y-1 leading-relaxed">
+                        <p>Garantizamos que todos nuestros productos son 100% legítimos y de procedencia verificada. Calidad original certificada.</p>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+              </div>
+
             </div>
 
+          </div>
+
+          {/* "TAMBIÉN PODRÍA GUSTARTE" Section matching Yolu Screenshot 9 */}
+          {related.length > 0 && (
+            <div className="pt-8 border-t border-zinc-200">
+              <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-black mb-4">
+                TAMBIÉN PODRÍA GUSTARTE
+              </h3>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                {related.map((relProduct) => (
+                  <div
+                    key={relProduct.id}
+                    onClick={() => onOpenProduct && onOpenProduct(relProduct)}
+                    className="flex flex-col group cursor-pointer text-center"
+                  >
+                    <div className="aspect-square w-full bg-[#f4f4f5] group-hover:bg-[#ededf0] rounded-xl p-3 flex items-center justify-center transition-all">
+                      <img
+                        src={relProduct.images[0]}
+                        alt={relProduct.name}
+                        className="w-4/5 h-4/5 object-contain group-hover:scale-105 transition-transform"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                    <div className="pt-2 text-center space-y-0.5">
+                      <p className="text-xs font-semibold text-zinc-900 group-hover:text-black line-clamp-1">
+                        {relProduct.name}
+                      </p>
+                      <p className="text-xs font-extrabold text-black">
+                        {settings.currencySymbol} {relProduct.price.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Trust Badges Strip at Bottom */}
+          <div className="pt-6 border-t border-zinc-200 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center text-xs text-zinc-600">
+            <div className="flex items-center justify-center gap-2">
+              <CreditCard className="w-4 h-4 text-black shrink-0" />
+              <span>Paga con Yape, Plin y Tarjetas</span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-black shrink-0" />
+              <span>Compra 100% segura y garantizada</span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <Truck className="w-4 h-4 text-black shrink-0" />
+              <span>Envíos a todo el Perú</span>
+            </div>
           </div>
 
         </div>

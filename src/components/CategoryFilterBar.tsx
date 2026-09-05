@@ -1,6 +1,6 @@
 import React from 'react';
 import { CategoryType, GenderType } from '../types';
-import { Sparkles, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown } from 'lucide-react';
 
 interface CategoryFilterBarProps {
   currentCategory?: 'all' | CategoryType;
@@ -17,115 +17,131 @@ interface CategoryFilterBarProps {
   totalProductsCount?: number;
   sortBy?: string;
   onSortChange?: (sort: 'popular' | 'price_asc' | 'price_desc' | 'newest' | 'discount') => void;
+  itemsPerPage?: number;
+  onItemsPerPageChange?: (size: number) => void;
+  startIndex?: number;
+  endIndex?: number;
 }
 
 export const CategoryFilterBar: React.FC<CategoryFilterBarProps> = ({
-  currentCategory,
+  currentCategory = 'all',
   selectedCategory,
-  currentGender,
+  currentGender = 'all',
   selectedGender,
-  onSelect,
-  onSelectCategory,
-  onSelectGender,
   onOpenFilterDrawer,
   onOpenFilters,
   activeFilterCount,
   activeFiltersCount,
   totalProductsCount = 0,
   sortBy = 'popular',
-  onSortChange
+  onSortChange,
+  itemsPerPage = 12,
+  onItemsPerPageChange,
+  startIndex = 0,
+  endIndex = 0,
 }) => {
-  const activeCategory = selectedCategory || currentCategory || 'all';
-  const activeGender = selectedGender || currentGender || 'all';
+  const cat = selectedCategory || currentCategory;
+  const gen = selectedGender || currentGender;
   const filterCount = activeFilterCount ?? activeFiltersCount ?? 0;
-
-  const handleCategorySelection = (cat: 'all' | CategoryType, gen: 'all' | GenderType) => {
-    if (onSelect) onSelect(cat, gen);
-    if (onSelectCategory) onSelectCategory(cat);
-    if (onSelectGender) onSelectGender(gen);
-  };
 
   const handleOpenDrawer = () => {
     if (onOpenFilterDrawer) onOpenFilterDrawer();
     else if (onOpenFilters) onOpenFilters();
   };
 
-  const isSelected = (cat: 'all' | CategoryType, gen: 'all' | GenderType) => {
-    return activeCategory === cat && activeGender === gen;
-  };
-
-  const navItems = [
-    { label: '✨ Todo', cat: 'all' as const, gen: 'all' as const },
-    { label: '👟 Calzado Varones', cat: 'calzado' as const, gen: 'varones' as const },
-    { label: '👠 Calzado Mujeres', cat: 'calzado' as const, gen: 'mujeres' as const },
-    { label: '🧒 Calzado Niños', cat: 'calzado' as const, gen: 'ninos' as const },
-    { label: '👔 Ropa Varones', cat: 'ropa' as const, gen: 'varones' as const },
-    { label: '👗 Ropa Mujeres', cat: 'ropa' as const, gen: 'mujeres' as const },
-    { label: '👕 Ropa Niños', cat: 'ropa' as const, gen: 'ninos' as const },
-  ];
+  // Human readable title matching Yolu screenshot 5 ("PRODUCTOS \n HOMBRE")
+  let categoryLabel = 'TODO EL CATÁLOGO';
+  if (cat === 'ropa') {
+    categoryLabel = gen === 'varones' ? 'ROPA HOMBRE' : gen === 'mujeres' ? 'ROPA MUJER' : 'ROPA Y ACCESORIOS';
+  } else if (gen === 'varones') {
+    categoryLabel = 'HOMBRE';
+  } else if (gen === 'mujeres') {
+    categoryLabel = 'MUJER';
+  } else if (gen === 'ninos') {
+    categoryLabel = 'NIÑOS';
+  } else if (cat === 'calzado') {
+    categoryLabel = 'CALZADO';
+  }
 
   return (
-    <div className="space-y-3 mb-6">
-      {/* Scrollable Category Pills Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none scroll-smooth">
-        {navItems.map((item) => {
-          const active = isSelected(item.cat, item.gen);
-          return (
-            <button
-              key={`${item.cat}-${item.gen}`}
-              onClick={() => handleCategorySelection(item.cat, item.gen)}
-              className={`whitespace-nowrap px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
-                active
-                  ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25 scale-102 font-extrabold'
-                  : 'bg-white/80 text-slate-700 hover:bg-sky-50 hover:text-sky-800 border border-sky-100 shadow-xs'
-              }`}
-            >
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
+    <div className="space-y-4 mb-6">
+      {/* Category Section Header matching Screenshot 5 */}
+      <div className="text-left pt-2">
+        <span className="text-[11px] font-bold tracking-widest text-zinc-400 uppercase block mb-1">
+          PRODUCTOS
+        </span>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-black uppercase tracking-tight font-sans">
+          {categoryLabel}
+        </h1>
       </div>
 
-      {/* Filter and Count Summary Strip */}
-      <div className="flex items-center justify-between gap-3 bg-white/80 backdrop-blur-xl p-3 rounded-2xl border border-sky-100 shadow-sm">
+      {/* Yolu Toolbar matching Screenshot 5 & 6 */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 border-y border-zinc-200 text-xs text-zinc-600">
         
-        {/* Left: Filter Trigger Button */}
-        <div className="flex items-center gap-2">
+        {/* Left: Results summary */}
+        <div className="font-normal text-zinc-500">
+          Mostrando {totalProductsCount > 0 ? `${startIndex + 1}–${endIndex}` : '0'} de {totalProductsCount} resultados
+        </div>
+
+        {/* Right: Selectors matching Yolu dropdowns */}
+        <div className="flex items-center gap-2 flex-wrap">
+          
+          {/* Advanced Filter Drawer Trigger */}
           <button
             onClick={handleOpenDrawer}
-            className="flex items-center gap-2 px-3.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 rounded-full text-xs font-semibold border border-sky-200 transition-all shadow-xs cursor-pointer"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer ${
+              filterCount > 0 
+                ? 'bg-black text-white border-black' 
+                : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-800'
+            }`}
             id="btn-open-filter-drawer"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-sky-600" />
-            <span>Filtros Avanzados</span>
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>Filtros</span>
             {filterCount > 0 && (
-              <span className="bg-sky-600 text-white px-1.5 py-0.2 rounded-full text-[10px] font-black">
+              <span className="ml-0.5 bg-white text-black px-1.5 py-0.2 rounded-full text-[10px] font-black">
                 {filterCount}
               </span>
             )}
           </button>
 
-          <span className="text-xs text-slate-700 font-medium inline">
-            <strong className="text-slate-950 font-bold">{totalProductsCount}</strong> productos encontrados
-          </span>
+          {/* Items per page selector */}
+          {onItemsPerPageChange && (
+            <div className="relative">
+              <select
+                value={itemsPerPage}
+                onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+                className="appearance-none bg-white hover:bg-zinc-50 text-zinc-800 text-xs font-semibold py-1.5 pl-3 pr-7 rounded-full border border-zinc-200 outline-none cursor-pointer"
+              >
+                <option value={12}>12 por página</option>
+                <option value={16}>16 por página</option>
+                <option value={24}>24 por página</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          )}
+
+          {/* Sort By Dropdown */}
+          {onSortChange && (
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => onSortChange(e.target.value as any)}
+                className="appearance-none bg-white hover:bg-zinc-50 text-zinc-800 text-xs font-semibold py-1.5 pl-3 pr-7 rounded-full border border-zinc-200 outline-none cursor-pointer"
+                id="select-sort-by"
+              >
+                <option value="popular">Orden predeterminado</option>
+                <option value="newest">Más recientes</option>
+                <option value="price_asc">Precio: de menor a mayor</option>
+                <option value="price_desc">Precio: de mayor a menor</option>
+                <option value="discount">Mayor descuento</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          )}
+
         </div>
 
-        {/* Right: Sort By Dropdown */}
-        <div className="flex items-center gap-1.5">
-          <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <select
-            value={sortBy}
-            onChange={(e) => onSortChange(e.target.value as any)}
-            className="bg-white text-slate-700 text-xs rounded-full px-3 py-1.5 border border-sky-200 focus:outline-none focus:border-sky-500 font-medium cursor-pointer shadow-xs"
-            id="select-sort-by"
-          >
-            <option value="popular">Más Populares</option>
-            <option value="newest">Más Recientes</option>
-            <option value="price_asc">Menor Precio</option>
-            <option value="price_desc">Mayor Precio</option>
-            <option value="discount">Mayor Descuento</option>
-          </select>
-        </div>
       </div>
     </div>
   );

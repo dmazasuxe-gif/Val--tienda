@@ -50,7 +50,8 @@
         "storeName": { "type": "string" },
         "whatsappNumber": { "type": "string" },
         "shippingCost": { "type": "number" },
-        "coupons": { "type": "array" }
+        "coupons": { "type": "array" },
+        "brands": { "type": "array" }
       }
     }
   },

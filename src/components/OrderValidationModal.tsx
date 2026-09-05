@@ -39,62 +39,64 @@ export const OrderValidationModal: React.FC<OrderValidationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in font-sans">
       <div 
         className="fixed inset-0"
         onClick={onClose}
-      ></div>
+      />
       
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh] animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md bg-white border border-zinc-200 rounded-3xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh] z-10 text-zinc-900">
         
-        {/* Header */}
-        <div className="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between shrink-0">
+        {/* Minimal Header */}
+        <div className="bg-white border-b border-zinc-200 p-4 sm:p-5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center border border-zinc-200">
+              <ShieldCheck className="w-5 h-5 text-black" />
             </div>
             <div>
-              <h2 className="font-bold text-base sm:text-lg">Validación de Boleta</h2>
-              <p className="text-[11px] text-slate-300">
+              <h2 className="font-black text-sm sm:text-base uppercase tracking-wider text-black">
+                Validación de Boleta
+              </h2>
+              <p className="text-xs text-zinc-500">
                 {settings.storeName}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors cursor-pointer"
+            className="p-2 text-zinc-400 hover:text-black rounded-full hover:bg-zinc-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-5 overflow-y-auto bg-slate-50 flex-1">
+        <div className="p-5 overflow-y-auto bg-white flex-1 space-y-4">
           {error ? (
-            <div className="text-center p-8 space-y-3">
-              <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <X className="w-8 h-8 text-rose-500" />
+            <div className="text-center p-6 space-y-3">
+              <div className="w-12 h-12 bg-zinc-100 rounded-full flex items-center justify-center mx-auto text-zinc-500">
+                <X className="w-6 h-6" />
               </div>
-              <p className="text-rose-600 font-bold">{error}</p>
+              <p className="text-zinc-800 text-xs font-bold">{error}</p>
               <button 
                 onClick={onClose}
-                className="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors cursor-pointer"
+                className="px-6 py-2 bg-black text-white rounded-full font-bold text-xs uppercase tracking-wider hover:bg-zinc-800 transition-colors cursor-pointer"
               >
                 Cerrar
               </button>
             </div>
           ) : activeOrder ? (
-            <div className="space-y-5">
+            <div className="space-y-4">
               
               <div className="text-center space-y-1">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold mb-2">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold mb-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Pedido Verificado
                 </div>
-                <h3 className="text-xl font-black text-slate-900">
-                  {activeOrder.orderNumber}
+                <h3 className="text-2xl font-black text-black font-mono">
+                  #{activeOrder.orderNumber}
                 </h3>
-                <p className="text-slate-500 text-xs flex items-center justify-center gap-1">
+                <p className="text-zinc-500 text-xs flex items-center justify-center gap-1">
                   <Calendar className="w-3.5 h-3.5" />
                   {new Date(activeOrder.createdAt).toLocaleString('es-PE', {
                     dateStyle: 'medium', timeStyle: 'short'
@@ -103,47 +105,47 @@ export const OrderValidationModal: React.FC<OrderValidationModalProps> = ({
               </div>
 
               {/* Customer Info */}
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                  <User className="w-4 h-4 text-sky-500" />
+              <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-200 space-y-2 text-xs">
+                <h4 className="font-bold text-black uppercase tracking-wider flex items-center gap-1.5 border-b border-zinc-200 pb-2">
+                  <User className="w-4 h-4 text-zinc-600" />
                   Datos del Cliente
                 </h4>
-                <div className="space-y-1.5 text-sm text-slate-700">
-                  <p><span className="font-semibold text-slate-900">Nombre:</span> {activeOrder.customerName}</p>
-                  <p><span className="font-semibold text-slate-900">Teléfono:</span> {activeOrder.customerPhone}</p>
-                  <p><span className="font-semibold text-slate-900">Dirección:</span> {activeOrder.shippingAddress}, {activeOrder.district}, {activeOrder.city}</p>
-                  <p><span className="font-semibold text-slate-900">Método de Pago:</span> {formatPaymentMethod(activeOrder.paymentMethod)}</p>
-                  <p><span className="font-semibold text-slate-900">Estado:</span> {formatStatus(activeOrder.status)}</p>
+                <div className="space-y-1 text-zinc-700">
+                  <p><span className="font-bold text-black">Nombre:</span> {activeOrder.customerName}</p>
+                  <p><span className="font-bold text-black">Teléfono:</span> {activeOrder.customerPhone}</p>
+                  <p><span className="font-bold text-black">Dirección:</span> {activeOrder.shippingAddress}, {activeOrder.city}</p>
+                  <p><span className="font-bold text-black">Método de Pago:</span> {formatPaymentMethod(activeOrder.paymentMethod)}</p>
+                  <p><span className="font-bold text-black">Estado:</span> {formatStatus(activeOrder.status)}</p>
                 </div>
               </div>
 
               {/* Products */}
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                  <Package className="w-4 h-4 text-sky-500" />
+              <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-200 space-y-3">
+                <h4 className="font-bold text-black text-xs uppercase tracking-wider flex items-center gap-1.5 border-b border-zinc-200 pb-2">
+                  <Package className="w-4 h-4 text-zinc-600" />
                   Productos Comprados
                 </h4>
                 
-                <div className="space-y-3 pt-1">
+                <div className="space-y-2.5 pt-1">
                   {activeOrder.items.map((item, idx) => (
-                    <div key={idx} className="flex gap-3 items-center">
-                      <div className="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                    <div key={idx} className="flex gap-3 items-center bg-white p-2 rounded-xl border border-zinc-200">
+                      <div className="w-14 h-16 shrink-0 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200">
                         <img 
                           src={item.product.images[0] || 'https://via.placeholder.com/150'} 
                           alt={item.product.name}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h5 className="font-bold text-slate-900 text-sm truncate leading-tight">
+                      <div className="flex-1 min-w-0 text-xs">
+                        <h5 className="font-bold text-black truncate uppercase">
                           {item.product.name}
                         </h5>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Talla: <span className="font-semibold text-slate-700">{item.selectedSize}</span> | 
-                          Color: <span className="font-semibold text-slate-700">{item.selectedColor.name}</span>
+                        <p className="text-zinc-500 mt-0.5">
+                          Talla: <span className="font-bold text-black">{item.selectedSize}</span> | 
+                          Color: <span className="font-bold text-black">{item.selectedColor.name}</span>
                         </p>
-                        <p className="text-xs font-bold text-sky-600 mt-0.5">
-                          Cant: {item.quantity}
+                        <p className="font-bold text-black mt-0.5">
+                          Cantidad: {item.quantity}
                         </p>
                       </div>
                     </div>
@@ -153,9 +155,9 @@ export const OrderValidationModal: React.FC<OrderValidationModalProps> = ({
 
             </div>
           ) : (
-             <div className="flex justify-center p-8">
-               <div className="w-8 h-8 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
-             </div>
+            <div className="flex justify-center p-8">
+              <div className="w-8 h-8 border-3 border-zinc-300 border-t-black rounded-full animate-spin"></div>
+            </div>
           )}
         </div>
       </div>

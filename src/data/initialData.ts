@@ -1,4 +1,71 @@
-import { Product, StoreSettings, Order, RunwaySlide, ShippingOption, Coupon } from '../types';
+import { Product, StoreSettings, Order, RunwaySlide, ShippingOption, Coupon, StoreBrand } from '../types';
+
+export const DEFAULT_STORE_BRANDS: StoreBrand[] = [
+  {
+    id: "brand-nike",
+    name: "Nike",
+    label: "NIKE",
+    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg",
+    isActive: true,
+    order: 1
+  },
+  {
+    id: "brand-adidas",
+    name: "Adidas",
+    label: "ADIDAS",
+    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg",
+    isActive: true,
+    order: 2
+  },
+  {
+    id: "brand-jordan",
+    name: "Jordan",
+    label: "JORDAN",
+    logoUrl: "https://upload.wikimedia.org/wikipedia/en/3/37/Jumpman_logo.svg",
+    isActive: true,
+    order: 3
+  },
+  {
+    id: "brand-puma",
+    name: "Puma",
+    label: "PUMA",
+    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/8/88/Puma_logo.svg",
+    isActive: true,
+    order: 4
+  },
+  {
+    id: "brand-reebok",
+    name: "Reebok",
+    label: "REEBOK",
+    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/5/53/Reebok_2019_logo.svg",
+    isActive: true,
+    order: 5
+  },
+  {
+    id: "brand-lacoste",
+    name: "Lacoste",
+    label: "LACOSTE",
+    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/1/1b/Lacoste_logo.svg",
+    isActive: true,
+    order: 6
+  },
+  {
+    id: "brand-fila",
+    name: "FILA",
+    label: "FILA",
+    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/8/86/Fila_logo.svg",
+    isActive: true,
+    order: 7
+  },
+  {
+    id: "brand-joma",
+    name: "Joma",
+    label: "JOMA",
+    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/f/f6/Joma_logo.svg",
+    isActive: true,
+    order: 8
+  }
+];
 
 export const INITIAL_COUPONS: Coupon[] = [
   {
@@ -136,6 +203,9 @@ export const INITIAL_STORE_SETTINGS: StoreSettings = {
       linkGender: "mujeres"
     }
   ],
+
+  // Pasarela de Marcas Oficiales de la Tienda
+  brands: DEFAULT_STORE_BRANDS,
 
   // Chofer / Repartidor de Envíos
   driverName: "Carlos Méndez R.",

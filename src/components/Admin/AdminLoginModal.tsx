@@ -44,37 +44,37 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/40 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in font-sans">
       <div className="fixed inset-0" onClick={onClose} />
 
-      <div className="relative w-full max-w-sm bg-white border border-sky-100 rounded-3xl shadow-2xl overflow-hidden z-10 p-6 space-y-5 animate-scale-in text-slate-800">
+      <div className="relative w-full max-w-sm bg-white border border-zinc-200 rounded-3xl shadow-2xl overflow-hidden z-10 p-6 space-y-5 text-zinc-900">
         
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-black rounded-lg hover:bg-zinc-100 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header Icon */}
-        <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center mx-auto shadow-sm">
-            <ShieldCheck className="w-8 h-8" />
+        <div className="text-center space-y-1.5">
+          <div className="w-12 h-12 rounded-2xl bg-zinc-100 text-black border border-zinc-200 flex items-center justify-center mx-auto">
+            <ShieldCheck className="w-6 h-6" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 font-['Playfair_Display',serif]">
+          <h2 className="text-base font-black uppercase tracking-wider text-black">
             Acceso Administrativo
           </h2>
-          <p className="text-xs text-slate-500">
-            Panel protegido de <strong className="text-slate-800">{settings.storeName}</strong>
+          <p className="text-xs text-zinc-500">
+            Panel de control de <strong className="text-black">{settings.storeName}</strong>
           </p>
         </div>
 
         {/* PIN Input Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="relative">
-            <div className="flex items-center justify-center gap-2 bg-slate-50 p-3 rounded-2xl border border-sky-200 shadow-inner">
-              <KeyRound className="w-4 h-4 text-sky-600 shrink-0" />
+            <div className="flex items-center justify-center gap-2 bg-zinc-50 p-3 rounded-2xl border border-zinc-200">
+              <KeyRound className="w-4 h-4 text-zinc-500 shrink-0" />
               <input
                 type={showPin ? 'text' : 'password'}
                 placeholder="Ingresa tu PIN"
@@ -85,12 +85,12 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                 }}
                 maxLength={8}
                 autoFocus
-                className="bg-transparent text-center text-lg tracking-widest font-black text-slate-900 focus:outline-none w-36"
+                className="bg-transparent text-center text-lg tracking-widest font-black text-black focus:outline-none w-36"
               />
               <button
                 type="button"
                 onClick={() => setShowPin(!showPin)}
-                className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                className="text-zinc-400 hover:text-black p-1 cursor-pointer"
               >
                 {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -115,7 +115,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
                   else if (key === '⌫') handleBackspace();
                   else handleQuickKey(key);
                 }}
-                className="h-11 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-800 font-bold text-sm border border-slate-200 active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                className="h-11 rounded-xl bg-zinc-50 hover:bg-zinc-100 text-black font-bold text-sm border border-zinc-200 active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
               >
                 {key}
               </button>
@@ -125,13 +125,13 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           {/* Login Action */}
           <button
             type="submit"
-            className="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold rounded-xl text-sm shadow-md shadow-sky-500/25 transition-all hover:scale-101 active:scale-98 cursor-pointer uppercase tracking-wider"
+            className="w-full py-3 bg-black hover:bg-zinc-800 text-white font-black rounded-full text-xs uppercase tracking-wider transition-all cursor-pointer shadow-xs"
           >
-            Desbloquear Panel Admin
+            Desbloquear Panel
           </button>
 
-          <p className="text-[11px] text-slate-400 text-center">
-            🔐 PIN de seguridad predeterminado: <strong className="text-sky-700 font-bold">1234</strong>
+          <p className="text-[11px] text-zinc-400 text-center">
+            PIN por defecto: <strong className="text-black font-bold">1234</strong>
           </p>
         </form>
 
