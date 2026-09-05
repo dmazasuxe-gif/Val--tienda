@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import { ReceiptSettingsPanel } from './ReceiptSettingsPanel';
 import { BrandsManager } from './BrandsManager';
-import { playNotificationChime, requestPushPermission, getPushPermissionStatus } from '../../utils/sound';
+import { playNotificationChime, requestPushPermission, getPushPermissionStatus, sendPushNotification } from '../../utils/sound';
 
 interface StoreSettingsViewProps {
   settings: StoreSettings;
@@ -398,6 +398,15 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
 
   const handleTestSound = () => {
     playNotificationChime();
+  };
+
+  const handleTestNotificationAlert = async () => {
+    playNotificationChime();
+    await sendPushNotification(
+      '🛍️ NUEVO PEDIDO DE PRUEBA: #1099',
+      '¡Hola! Las notificaciones del sistema están funcionando correctamente en este dispositivo.',
+      '/logo.png'
+    );
   };
 
   const handleEnablePush = async () => {
@@ -1577,10 +1586,11 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={handleTestSound}
-                className="px-3 py-1 bg-white hover:bg-sky-50 text-slate-700 text-[11px] font-bold rounded-xl border border-sky-200 cursor-pointer shadow-2xs"
+                onClick={handleTestNotificationAlert}
+                className="px-3 py-1 bg-white hover:bg-sky-50 text-sky-800 text-[11px] font-bold rounded-xl border border-sky-300 cursor-pointer shadow-2xs"
+                title="Prueba sonido, vibración y push en este dispositivo"
               >
-                Probar Sonido
+                Probar Alerta (Sonido + Push)
               </button>
               <input
                 type="checkbox"

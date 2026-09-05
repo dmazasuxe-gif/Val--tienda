@@ -244,3 +244,31 @@
 .animate-float-up {
   animation: floatUpBadge 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
+
+/* Continuous Brand Runway (Pasarela Dinámica en Movimiento) */
+@keyframes brandRunwayGlide {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-brand-runway {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: brandRunwayGlide 35s linear infinite;
+}
+
+.animate-brand-runway:hover {
+  animation-play-state: paused;
+}
+
+@media (max-width: 640px) {
+  .animate-brand-runway {
+    animation-duration: 25s;
+  }
+}
+

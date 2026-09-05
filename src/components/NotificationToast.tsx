@@ -15,6 +15,14 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
   onViewOrder,
   settings
 }) => {
+  React.useEffect(() => {
+    if (!notification) return;
+    const timer = setTimeout(() => {
+      onClose();
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [notification, onClose]);
+
   if (!notification) return null;
 
   return (

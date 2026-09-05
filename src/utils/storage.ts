@@ -157,14 +157,27 @@ export const saveStoredFavorites = (favs: string[]): void => {
 };
 
 export const isAdminAuthenticated = (): boolean => {
-  return sessionStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
+  try {
+    return (
+      sessionStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true' ||
+      localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true'
+    );
+  } catch {
+    return false;
+  }
 };
 
 export const setAdminAuthenticated = (auth: boolean): void => {
-  if (auth) {
-    sessionStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
-  } else {
-    sessionStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+  try {
+    if (auth) {
+      sessionStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
+      localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
+    } else {
+      sessionStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+    }
+  } catch (e) {
+    console.warn('Admin auth storage warning:', e);
   }
   window.dispatchEvent(new Event('aura_auth_updated'));
 };

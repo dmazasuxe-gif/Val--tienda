@@ -43,6 +43,8 @@ interface AdminLayoutProps {
   onExitAdmin: () => void;
   onLogoutAdmin: () => void;
   onPreviewTracking?: (orderCode: string) => void;
+  initialTab?: AdminTab;
+  onTabChange?: (tab: AdminTab) => void;
 }
 
 type AdminTab = 'scanner' | 'products' | 'orders' | 'reports' | 'stock' | 'brands' | 'settings';
@@ -59,9 +61,22 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   onSaveSettings,
   onExitAdmin,
   onLogoutAdmin,
-  onPreviewTracking
+  onPreviewTracking,
+  initialTab,
+  onTabChange
 }) => {
-  const [activeTab, setActiveTab] = useState<AdminTab>('products');
+  const [activeTab, setActiveTabState] = useState<AdminTab>(initialTab || 'products');
+
+  const setActiveTab = (tab: AdminTab) => {
+    setActiveTabState(tab);
+    if (onTabChange) onTabChange(tab);
+  };
+
+  React.useEffect(() => {
+    if (initialTab && initialTab !== activeTab) {
+      setActiveTabState(initialTab);
+    }
+  }, [initialTab]);
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [initialBarcode, setInitialBarcode] = useState<string | undefined>();

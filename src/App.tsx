@@ -156,6 +156,7 @@ export default function App() {
   const [adminLoginModalOpen, setAdminLoginModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeToast, setActiveToast] = useState<OrderNotification | null>(null);
+  const [adminActiveTab, setAdminActiveTab] = useState<'scanner' | 'products' | 'orders' | 'reports' | 'stock' | 'brands' | 'settings'>('products');
 
   // Cart Promo Code & Discount
   const [cartDiscount, setCartDiscount] = useState(0);
@@ -203,8 +204,11 @@ export default function App() {
           // Update known IDs
           newOrders.forEach(o => knownOrderIdsRef.current.add(o.id));
 
-          // STRICT CHECK: Only trigger toast / sound / push if Admin is logged in and viewing the Admin Panel
-          if (viewModeRef.current === 'admin' && isAdminLoggedInRef.current) {
+          // STRICT SEPARATION:
+          // ONLY trigger toast / sound / vibration / push if this browser instance is currently in ADMIN MODE ('admin') AND the administrator is authenticated!
+          // NEVER notify in the store or to public customers!
+          const isCurrentlyInAdminMode = viewModeRef.current === 'admin' && isAdminLoggedInRef.current;
+          if (isCurrentlyInAdminMode) {
             const latestNewOrder = newOrders[0];
             const currentSettings = settingsRef.current;
             const notif: OrderNotification = {
@@ -220,13 +224,13 @@ export default function App() {
 
             setActiveToast(notif);
 
-            if (currentSettings.notificationSound) {
+            if (currentSettings.notificationSound !== false) {
               playNotificationChime();
             }
-            if (currentSettings.pushNotifications) {
+            if (currentSettings.pushNotifications !== false) {
               sendPushNotification(
-                `🛍️ NUEVO PEDIDO`,
-                `${latestNewOrder.customerName} ha comprado ${latestNewOrder.items.map(item => item.product.name).join(', ')} por ${currentSettings.currencySymbol} ${latestNewOrder.total.toFixed(2)}`
+                `🛍️ NUEVO PEDIDO: #${latestNewOrder.orderNumber}`,
+                `${latestNewOrder.customerName} realizó una compra por ${currentSettings.currencySymbol} ${latestNewOrder.total.toFixed(2)}`
               );
             }
           }
@@ -514,7 +518,7 @@ export default function App() {
     setCartDiscount(0);
     setAppliedPromo('');
 
-    // 4. Create Notification
+    // 4. Save Notification in stored history for the administrative records
     const notif: OrderNotification = {
       id: `notif-${Date.now()}`,
       orderId: newOrder.id,
@@ -527,22 +531,9 @@ export default function App() {
     };
 
     saveStoredNotifications([notif, ...getStoredNotifications()]);
-
-    // 5. Only notify with Toast / Sound / Push if the Administrator is viewing the Admin Panel
-    if (viewMode === 'admin' && isAdminLoggedIn) {
-      setActiveToast(notif);
-
-      // Real-Time Audio Chime & Push Alert
-      if (settings.notificationSound) {
-        playNotificationChime();
-      }
-      if (settings.pushNotifications) {
-        sendPushNotification(
-          `🛍️ NUEVO PEDIDO`,
-          `${newOrder.customerName} ha comprado ${newOrder.items.map(item => item.product.name).join(', ')} por ${settings.currencySymbol} ${newOrder.total.toFixed(2)}`
-        );
-      }
-    }
+    // NOTE: We do NOT trigger any toast, sound chime or push notification here in the checkout window.
+    // That guarantees the customer storefront remains quiet and uninterrupted.
+    // The alert is received live via Firestore by any admin device (phone or PC).
   };
 
   const handleOpenTracking = (code?: string) => {
@@ -655,6 +646,8 @@ export default function App() {
             onExitAdmin={() => setViewMode('store')}
             onLogoutAdmin={handleLogoutAdmin}
             onPreviewTracking={(code) => handleOpenTracking(code)}
+            initialTab={adminActiveTab}
+            onTabChange={setAdminActiveTab}
           />
         ) : (
           <AdminPortalLogin
@@ -1107,6 +1100,7 @@ export default function App() {
           settings={settings}
           onViewOrder={() => {
             setViewMode('admin');
+            setAdminActiveTab('orders');
           }}
         />
       )}
