@@ -16,6 +16,23 @@ export const printTicket = (order: Order, settings: StoreSettings) => {
 
   // Calculate totals
   const totalItems = order.items.reduce((acc, i) => acc + i.quantity, 0);
+  
+  // Design settings
+  const widthStr = rs?.paperWidth === '58mm' ? '200px' : '280px';
+  
+  let baseFontSize = '12px';
+  let smallFontSize = '10px';
+  let largeFontSize = '16px';
+  
+  if (rs?.fontSize === 'small') {
+    baseFontSize = '10px'; smallFontSize = '9px'; largeFontSize = '14px';
+  } else if (rs?.fontSize === 'large') {
+    baseFontSize = '14px'; smallFontSize = '12px'; largeFontSize = '18px';
+  }
+
+  // Generate QR Code URL to the tracking page
+  const trackingUrl = `${window.location.origin}/?track=${order.orderNumber}`;
+  const qrCodeImg = `https://quickchart.io/qr?text=${encodeURIComponent(trackingUrl)}&size=120&margin=1`;
 
   const html = `
     <!DOCTYPE html>
@@ -24,7 +41,7 @@ export const printTicket = (order: Order, settings: StoreSettings) => {
       <meta charset="utf-8">
       <title>Ticket - ${order.orderNumber}</title>
       <style>
-        /* CSS reset & base settings optimized for thermal printers (58mm or 80mm) */
+        /* CSS reset & base settings optimized for thermal printers */
         @page {
           margin: 0;
           size: auto;
@@ -33,10 +50,10 @@ export const printTicket = (order: Order, settings: StoreSettings) => {
           margin: 0;
           padding: 8px;
           font-family: 'Courier New', Courier, monospace, sans-serif;
-          font-size: 12px;
+          font-size: ${baseFontSize};
           color: #000;
           background: #fff;
-          width: 280px; /* standard 80mm printer width ~ 300px, 58mm ~ 200px */
+          width: ${widthStr};
           max-width: 100%;
           line-height: 1.2;
         }
@@ -45,8 +62,8 @@ export const printTicket = (order: Order, settings: StoreSettings) => {
         .text-left { text-align: left; }
         .bold { font-weight: bold; }
         .uppercase { text-transform: uppercase; }
-        .text-sm { font-size: 10px; }
-        .text-lg { font-size: 16px; font-weight: bold; }
+        .text-sm { font-size: ${smallFontSize}; }
+        .text-lg { font-size: ${largeFontSize}; font-weight: bold; }
         
         .header { margin-bottom: 15px; }
         .logo-img { max-width: 120px; max-height: 80px; margin: 0 auto 5px auto; display: block; filter: grayscale(100%); }
@@ -61,9 +78,10 @@ export const printTicket = (order: Order, settings: StoreSettings) => {
         
         .totals-table { margin-left: auto; width: 70%; }
         .totals-table td { padding: 3px 2px; }
-        .total-row { font-size: 14px; font-weight: bold; border-top: 1px solid #000; }
+        .total-row { font-size: calc(${baseFontSize} + 2px); font-weight: bold; border-top: 1px solid #000; }
         
-        .footer { margin-top: 20px; font-size: 10px; }
+        .footer { margin-top: 20px; font-size: ${smallFontSize}; }
+        .qr-code { margin: 15px auto 5px; display: block; max-width: 120px; }
         
         @media print {
           .no-print { display: none; }
@@ -84,7 +102,7 @@ export const printTicket = (order: Order, settings: StoreSettings) => {
       <div class="info-block">
         <p><span class="bold">TICKET NO:</span> ${order.orderNumber}</p>
         <p><span class="bold">FECHA:</span> ${date}</p>
-        <p><span class="bold">CLIENTE:</span> ${order.customerName}</p>
+        ${rs?.showCustomerInfo !== false ? `<p><span class="bold">CLIENTE:</span> ${order.customerName}</p>` : ''}
         <p><span class="bold">MÉTODO:</span> ${order.paymentMethod.replace('_', ' ').toUpperCase()}</p>
       </div>
 
@@ -134,11 +152,24 @@ export const printTicket = (order: Order, settings: StoreSettings) => {
         </tr>
       </table>
 
+      ${rs?.showOrderNotes !== false && order.notes ? `
+        <div class="divider"></div>
+        <div class="info-block text-sm">
+          <p><span class="bold">NOTAS:</span> ${order.notes}</p>
+        </div>
+      ` : ''}
+
       <div class="divider text-center" style="margin-bottom: 2px;">***</div>
       
       <div class="footer text-center">
         <p>Artículos totales: ${totalItems}</p>
         ${rs?.footerMessage ? `<p>${rs.footerMessage.replace(/\\n/g, '<br>')}</p>` : `<p>¡Gracias por su compra!</p>`}
+        
+        ${rs?.showQrCode !== false ? `
+          <img src="${qrCodeImg}" class="qr-code" alt="QR Recibo Digital" />
+          <p style="margin-top: 5px;">Escanea para ver tu boleta digital</p>
+        ` : ''}
+        
         <p class="text-sm" style="margin-top:15px; color: #555;">Documento sin valor fiscal</p>
       </div>
     </body>

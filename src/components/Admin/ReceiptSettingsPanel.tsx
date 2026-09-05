@@ -1,6 +1,8 @@
-import React, { useRef } from 'react';
-import { Printer, Upload, Image as ImageIcon } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Printer, Upload, Image as ImageIcon, Eye } from 'lucide-react';
 import { StoreSettings } from '../../types';
+import { printTicket } from '../../utils/printTicket';
+import { INITIAL_PRODUCTS } from '../../data/initialData'; // We'll use a product for the mock order
 
 interface ReceiptSettingsPanelProps {
   settings: StoreSettings;
@@ -14,12 +16,17 @@ export const ReceiptSettingsPanel: React.FC<ReceiptSettingsPanelProps> = ({ sett
     address: '', 
     phone: '', 
     logoUrl: '', 
-    footerMessage: '' 
+    footerMessage: '',
+    paperWidth: '80mm',
+    fontSize: 'normal',
+    showCustomerInfo: true,
+    showOrderNotes: true,
+    showQrCode: true
   };
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const updateField = (field: keyof typeof rs, value: string) => {
+  const updateField = (field: keyof typeof rs, value: any) => {
     onChange({ receiptSettings: { ...rs, [field]: value } });
   };
 
@@ -27,7 +34,6 @@ export const ReceiptSettingsPanel: React.FC<ReceiptSettingsPanelProps> = ({ sett
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check size (max 1MB to avoid bloating firestore document)
     if (file.size > 1024 * 1024) {
       alert("El logo es demasiado pesado. Por favor, sube una imagen de menos de 1MB.");
       return;
@@ -44,17 +50,131 @@ export const ReceiptSettingsPanel: React.FC<ReceiptSettingsPanelProps> = ({ sett
     reader.readAsDataURL(file);
   };
 
+  const handlePreview = () => {
+    // Generate a mock order to test the receipt
+    const mockOrder = {
+      id: 'mock-order-123',
+      orderNumber: 'AURA-MOCK',
+      customerName: 'Cliente de Prueba',
+      customerPhone: '987654321',
+      customerEmail: 'prueba@aura.com',
+      shippingAddress: 'Av. Las Flores 123',
+      city: 'Lima',
+      district: 'Miraflores',
+      reference: 'Frente al parque',
+      notes: 'Entregar por la tarde.',
+      items: [
+        {
+          id: 'mock-item-1',
+          product: INITIAL_PRODUCTS[0] || { name: 'Zapatilla de Prueba', price: 120 },
+          quantity: 1,
+          selectedSize: '38',
+          selectedColor: { name: 'Negro', value: '#000000' }
+        },
+        {
+          id: 'mock-item-2',
+          product: INITIAL_PRODUCTS[1] || { name: 'Bolso Elegante', price: 85 },
+          quantity: 2,
+          selectedSize: 'Única',
+          selectedColor: { name: 'Beige', value: '#F5F5DC' }
+        }
+      ] as any,
+      subtotal: 290,
+      shippingCost: 15,
+      discount: 0,
+      total: 305,
+      status: 'pending' as any,
+      paymentMethod: 'yape' as any,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    // Call print function with the mock order and current settings
+    printTicket(mockOrder, { ...settings, receiptSettings: rs });
+  };
+
   return (
-    <div className="p-5 sm:p-6 rounded-3xl bg-white border border-sky-100 space-y-4 text-xs shadow-xs">
+    <div className="p-5 sm:p-6 rounded-3xl bg-white border border-sky-100 space-y-6 text-xs shadow-xs">
       <div className="flex items-center justify-between">
         <h3 className="font-bold uppercase tracking-wider text-slate-800 text-xs flex items-center gap-1.5">
           <Printer className="w-4 h-4 text-slate-600" />
           <span>12. Configuración de Boleta / Ticket de Impresora</span>
         </h3>
+        <button
+          type="button"
+          onClick={handlePreview}
+          className="px-3 py-1.5 bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold rounded-xl flex items-center gap-1.5 transition-colors"
+        >
+          <Eye className="w-4 h-4" />
+          Vista Previa
+        </button>
       </div>
       <p className="text-[11px] text-slate-500">
-        Personaliza los datos que aparecerán al imprimir la boleta de venta en tu impresora ticketera. Sube tu logo directamente desde tu dispositivo (PC o Celular).
+        Personaliza los datos y el diseño que aparecerán al imprimir la boleta de venta.
       </p>
+
+      {/* --- DISEÑO DE BOLETA --- */}
+      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-4">
+        <h4 className="font-bold text-slate-700 text-sm border-b border-slate-200 pb-2">Diseño y Formato</h4>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-slate-700 font-semibold mb-1.5">Ancho del Papel</label>
+            <select
+              value={rs.paperWidth || '80mm'}
+              onChange={(e) => updateField('paperWidth', e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-sky-500 shadow-2xs"
+            >
+              <option value="58mm">58mm (Pequeño)</option>
+              <option value="80mm">80mm (Estándar)</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-slate-700 font-semibold mb-1.5">Tamaño de Fuente</label>
+            <select
+              value={rs.fontSize || 'normal'}
+              onChange={(e) => updateField('fontSize', e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-sky-500 shadow-2xs"
+            >
+              <option value="small">Pequeña</option>
+              <option value="normal">Normal</option>
+              <option value="large">Grande</option>
+            </select>
+          </div>
+
+          <div className="space-y-2 pt-1">
+            <label className="block text-slate-700 font-semibold mb-1">Elementos a mostrar</label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rs.showCustomerInfo !== false}
+                onChange={(e) => updateField('showCustomerInfo', e.target.checked)}
+                className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"
+              />
+              <span className="text-slate-600">Datos del Cliente</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rs.showOrderNotes !== false}
+                onChange={(e) => updateField('showOrderNotes', e.target.checked)}
+                className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"
+              />
+              <span className="text-slate-600">Notas del Pedido</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer" title="Se agregará un código QR escaneable al final del ticket para ver el recibo digital">
+              <input
+                type="checkbox"
+                checked={rs.showQrCode !== false}
+                onChange={(e) => updateField('showQrCode', e.target.checked)}
+                className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"
+              />
+              <span className="text-slate-600 font-semibold text-sky-700">Incluir Código QR (Recibo Digital)</span>
+            </label>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         
@@ -149,9 +269,7 @@ export const ReceiptSettingsPanel: React.FC<ReceiptSettingsPanelProps> = ({ sett
           />
         </div>
         
-        <div className="hidden sm:block">
-           {/* Empty div for layout alignment */}
-        </div>
+        <div className="hidden sm:block"></div>
 
         <div className="sm:col-span-2">
           <label className="block text-slate-700 font-semibold mb-1.5">Mensaje de Agradecimiento o Eslogan (Pie de página)</label>

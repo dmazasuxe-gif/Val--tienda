@@ -136,6 +136,12 @@ export interface StoreSettings {
     phone: string;
     logoUrl: string;
     footerMessage: string;
+    // Configuraciones de Diseño
+    paperWidth?: '58mm' | '80mm';
+    fontSize?: 'small' | 'normal' | 'large';
+    showCustomerInfo?: boolean;
+    showOrderNotes?: boolean;
+    showQrCode?: boolean;
   };
 }
 

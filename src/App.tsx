@@ -236,6 +236,18 @@ export default function App() {
       saveStoredSettings(cloudSettings);
     }, getStoredSettings());
 
+    // 4. Check for URL parameters (like ?track=ORDER-CODE from QR scans)
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const trackCode = searchParams.get('track');
+      if (trackCode) {
+        setTrackedOrderCode(trackCode);
+        setTrackingModalOpen(true);
+        // Clean URL to avoid reopening on refresh
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
     return () => {
       unsubProducts();
       unsubOrders();
