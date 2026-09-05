@@ -159,15 +159,41 @@ export const BrandsManager: React.FC<BrandsManagerProps> = ({
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        setFormError('La imagen no debe superar los 2MB');
-        return;
-      }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setLogoUrl(reader.result);
-          setFormError('');
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 400;
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            // Compress to PNG for transparency or JPEG
+            const isPng = file.type === 'image/png' || file.type === 'image/svg+xml';
+            const compressed = isPng 
+              ? canvas.toDataURL('image/png') 
+              : canvas.toDataURL('image/jpeg', 0.85);
+            setLogoUrl(compressed);
+            setFormError('');
+          }
+        };
+        if (typeof event.target?.result === 'string') {
+          img.src = event.target.result;
         }
       };
       reader.readAsDataURL(file);

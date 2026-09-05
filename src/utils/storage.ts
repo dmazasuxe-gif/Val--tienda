@@ -48,6 +48,9 @@ export const getStoredSettings = (): StoreSettings => {
       runwaySlides: (parsed.runwaySlides && Array.isArray(parsed.runwaySlides) && parsed.runwaySlides.length > 0)
         ? parsed.runwaySlides
         : INITIAL_STORE_SETTINGS.runwaySlides,
+      brands: (parsed.brands && Array.isArray(parsed.brands) && parsed.brands.length > 0)
+        ? parsed.brands
+        : INITIAL_STORE_SETTINGS.brands,
       shippingOptions: (parsed.shippingOptions && Array.isArray(parsed.shippingOptions) && parsed.shippingOptions.length > 0)
         ? parsed.shippingOptions
         : INITIAL_STORE_SETTINGS.shippingOptions,

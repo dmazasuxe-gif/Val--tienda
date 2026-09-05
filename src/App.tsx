@@ -766,15 +766,6 @@ export default function App() {
                   setCurrentPage(1);
                 }}
               />
-
-              {/* Brands Strip */}
-              <BrandsStrip
-                settings={settings}
-                onSelectBrand={(brand) => {
-                  setFilters((prev) => ({ ...prev, selectedBrands: [brand] }));
-                  setCurrentPage(1);
-                }}
-              />
             </>
           )}
 
@@ -934,19 +925,17 @@ export default function App() {
               </>
             )}
 
-            {/* If not home view, show brands strip before footer */}
-            {!isHomeView && (
-              <div className="mt-14">
-                <BrandsStrip
-                  onSelectBrand={(brand) => {
-                    setFilters((prev) => ({ ...prev, selectedBrands: [brand] }));
-                    setCurrentPage(1);
-                  }}
-                />
-              </div>
-            )}
-
           </main>
+
+          {/* Official Brands Gliding Runway - Positioned after the entire product catalog, before footer */}
+          <BrandsStrip
+            settings={settings}
+            onSelectBrand={(brand) => {
+              setFilters((prev) => ({ ...prev, selectedBrands: [brand] }));
+              setCurrentPage(1);
+              productsSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
 
           {/* Minimalist Store Footer matching Yolu */}
           <footer className="bg-white border-t border-zinc-200 text-zinc-600 text-xs mt-12 py-10">

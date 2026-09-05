@@ -49,6 +49,12 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
   const [formData, setFormData] = useState<StoreSettings>({ ...settings });
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [pushStatus, setPushStatus] = useState<string>('');
+  const [runwayUploadFeedback, setRunwayUploadFeedback] = useState<string | null>(null);
+
+  // Synchronize formData whenever settings prop changes (e.g. from Cloud sync or parent)
+  useEffect(() => {
+    setFormData({ ...settings });
+  }, [settings]);
 
   // Runway Slide Quick Add State
   const [newRunwayUrl, setNewRunwayUrl] = useState('');
@@ -211,12 +217,10 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          const outputType = (file.type === 'image/png' || file.type === 'image/webp') ? 'image/png' : 'image/jpeg';
-          if (outputType === 'image/jpeg') {
-            callback(canvas.toDataURL('image/jpeg', 0.8));
-          } else {
-            callback(canvas.toDataURL('image/png'));
-          }
+          // Always convert to high-definition optimized JPEG (0.80 quality)
+          // Keeps resolution pristine (1280px max) while reducing file size from 2MB to ~70KB-110KB
+          // This guarantees it will NEVER exceed Firestore 1MB document limit or localStorage quota!
+          callback(canvas.toDataURL('image/jpeg', 0.80));
         }
       };
       if (typeof e.target?.result === 'string') {
@@ -229,8 +233,23 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
   const handleRunwayFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      compressImage(file, 800, (compressedUrl) => {
+      compressImage(file, 1280, (compressedUrl) => {
         setNewRunwayUrl(compressedUrl);
+
+        // Instantly prepend new slide at position #1 (index 0) so it appears immediately on the storefront
+        const currentSlides = formData.runwaySlides || [];
+        const newSlide: RunwaySlide = {
+          id: `runway-${Date.now()}`,
+          imageUrl: compressedUrl,
+          title: newRunwayTitle.trim() || undefined,
+          subtitle: newRunwaySubtitle.trim() || undefined,
+          badge: newRunwayBadge.trim() || 'NUEVA COLECCIÓN'
+        };
+        const updated = { ...formData, runwaySlides: [newSlide, ...currentSlides] };
+        setFormData(updated);
+        onSaveSettings(updated);
+        setRunwayUploadFeedback('✅ ¡Fotografía añadida con éxito como Portada Principal (#1) de la Pasarela!');
+        setTimeout(() => setRunwayUploadFeedback(null), 5000);
       });
     }
   };
@@ -243,14 +262,45 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
       imageUrl: newRunwayUrl.trim(),
       title: newRunwayTitle.trim() || undefined,
       subtitle: newRunwaySubtitle.trim() || undefined,
-      badge: newRunwayBadge.trim() || undefined
+      badge: newRunwayBadge.trim() || 'NUEVA COLECCIÓN'
     };
-    const updated = { ...formData, runwaySlides: [...currentSlides, newSlide] };
+    // Add to beginning of slides so it is immediately visible
+    const updated = { ...formData, runwaySlides: [newSlide, ...currentSlides] };
     setFormData(updated);
     onSaveSettings(updated);
     setNewRunwayUrl('');
     setNewRunwayTitle('');
     setNewRunwaySubtitle('');
+    setRunwayUploadFeedback('✅ ¡Fotografía añadida a la pasarela!');
+    setTimeout(() => setRunwayUploadFeedback(null), 4000);
+  };
+
+  const handleMakeCover = (slideId: string) => {
+    const currentSlides = [...(formData.runwaySlides || [])];
+    const targetIdx = currentSlides.findIndex(s => s.id === slideId);
+    if (targetIdx <= 0) return;
+    const [selected] = currentSlides.splice(targetIdx, 1);
+    currentSlides.unshift(selected);
+    const updated = { ...formData, runwaySlides: currentSlides };
+    setFormData(updated);
+    onSaveSettings(updated);
+    setRunwayUploadFeedback(`⭐ "${selected.title || 'Imagen'}" ahora es la Portada Principal (#1) de la tienda.`);
+    setTimeout(() => setRunwayUploadFeedback(null), 4000);
+  };
+
+  const handleClearDemoSlides = () => {
+    if (window.confirm('¿Deseas remover las imágenes de muestra predeterminadas para dejar solo tus propias fotografías en la pasarela?')) {
+      const userUploaded = (formData.runwaySlides || []).filter(s => s.imageUrl.startsWith('data:') || s.id.startsWith('runway-custom-'));
+      if (userUploaded.length === 0) {
+        alert('Aún no has subido fotografías propias. Sube primero una foto desde tu celular o PC antes de limpiar las de muestra.');
+        return;
+      }
+      const updated = { ...formData, runwaySlides: userUploaded };
+      setFormData(updated);
+      onSaveSettings(updated);
+      setRunwayUploadFeedback('✅ Se limpiaron las fotos de muestra. Ahora solo se muestran tus fotos subidas.');
+      setTimeout(() => setRunwayUploadFeedback(null), 4000);
+    }
   };
 
   const handleRemoveRunwaySlide = (id: string) => {
@@ -450,7 +500,27 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSaveSettings(formData);
+    let finalSettings = { ...formData };
+    if (newRunwayUrl.trim()) {
+      const currentSlides = finalSettings.runwaySlides || [];
+      const alreadyHasIt = currentSlides.some(s => s.imageUrl === newRunwayUrl.trim());
+      if (!alreadyHasIt) {
+        const newSlide: RunwaySlide = {
+          id: `runway-${Date.now()}`,
+          imageUrl: newRunwayUrl.trim(),
+          title: newRunwayTitle.trim() || undefined,
+          subtitle: newRunwaySubtitle.trim() || undefined,
+          badge: newRunwayBadge.trim() || 'NUEVA COLECCIÓN'
+        };
+        finalSettings = {
+          ...finalSettings,
+          runwaySlides: [newSlide, ...currentSlides]
+        };
+        setFormData(finalSettings);
+        setNewRunwayUrl('');
+      }
+    }
+    onSaveSettings(finalSettings);
     setSavedSuccess(true);
     setTimeout(() => {
       setSavedSuccess(false);
@@ -1776,16 +1846,34 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
           Agrega y organiza las fotografías que desfilan en la pantalla de inicio con transiciones de desvanecimiento suave y zoom cinematográfico.
         </p>
 
+        {/* Live Upload Feedback Banner */}
+        {runwayUploadFeedback && (
+          <div className="p-3.5 bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold rounded-2xl flex items-center gap-2 text-xs shadow-xs animate-in fade-in">
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{runwayUploadFeedback}</span>
+          </div>
+        )}
+
         {/* Quick Add Slide Form */}
         <div className="p-4 rounded-2xl bg-sky-50/50 border border-sky-200/80 space-y-3">
-          <p className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
-            <Plus className="w-3.5 h-3.5 text-sky-600" />
-            <span>Agregar nueva imagen a la pasarela:</span>
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+              <Plus className="w-3.5 h-3.5 text-sky-600" />
+              <span>Subir nueva imagen a la pasarela:</span>
+            </p>
+            <span className="text-[10px] text-sky-700 bg-sky-100/80 px-2 py-0.5 rounded-full font-semibold">
+              Se optimiza automáticamente en HD sin saturar memoria
+            </span>
+          </div>
 
-          <label className="border-2 border-dashed border-sky-300 hover:border-sky-400 bg-white rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-colors w-full">
-            <Upload className="w-4 h-4 text-sky-600" />
-            <span className="font-bold text-sky-800 text-xs">Haz clic aquí para subir imagen desde Celular / PC</span>
+          <label className="border-2 border-dashed border-sky-300 hover:border-sky-500 bg-white hover:bg-sky-50/50 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-center gap-2.5 cursor-pointer transition-all w-full text-center shadow-2xs group">
+            <div className="p-2 rounded-xl bg-sky-100 group-hover:bg-sky-200 transition-colors">
+              <Upload className="w-5 h-5 text-sky-700" />
+            </div>
+            <div>
+              <span className="font-bold text-sky-900 text-xs sm:text-sm block">Haz clic aquí para seleccionar foto desde Celular o PC</span>
+              <span className="text-[10px] text-slate-500">Se agregará y guardará de inmediato como portada de tu tienda</span>
+            </div>
             <input
               type="file"
               accept="image/*"
@@ -1795,44 +1883,61 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
           </label>
 
           {newRunwayUrl && (
-            <div className="w-36 h-20 rounded-xl overflow-hidden border border-sky-300 bg-black">
-              <img src={newRunwayUrl} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-sky-200">
+              <div className="w-28 h-16 rounded-lg overflow-hidden border border-sky-300 bg-black shrink-0">
+                <img src={newRunwayUrl} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              </div>
+              <div className="text-[11px] text-slate-600 min-w-0">
+                <p className="font-bold text-emerald-700">✓ Fotografía cargada</p>
+                <p className="text-[10px] text-slate-500 truncate">Puedes personalizar título o etiqueta abajo y guardarla.</p>
+              </div>
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <input
               type="text"
-              placeholder="Título (opcional)"
+              placeholder="Título (opcional, ej. NUEVA COLECCIÓN)"
               value={newRunwayTitle}
               onChange={(e) => setNewRunwayTitle(e.target.value)}
-              className="px-3 py-2 bg-white border border-sky-200 rounded-xl text-slate-900 text-xs"
+              className="px-3 py-2 bg-white border border-sky-200 rounded-xl text-slate-900 text-xs focus:border-sky-500 focus:outline-none"
             />
             <input
               type="text"
-              placeholder="Subtítulo (opcional)"
+              placeholder="Subtítulo (opcional, ej. Edición Limitada)"
               value={newRunwaySubtitle}
               onChange={(e) => setNewRunwaySubtitle(e.target.value)}
-              className="px-3 py-2 bg-white border border-sky-200 rounded-xl text-slate-900 text-xs"
+              className="px-3 py-2 bg-white border border-sky-200 rounded-xl text-slate-900 text-xs focus:border-sky-500 focus:outline-none"
             />
             <input
               type="text"
               placeholder="Etiqueta (ej. PASARELA 2026)"
               value={newRunwayBadge}
               onChange={(e) => setNewRunwayBadge(e.target.value)}
-              className="px-3 py-2 bg-white border border-sky-200 rounded-xl text-slate-900 text-xs uppercase"
+              className="px-3 py-2 bg-white border border-sky-200 rounded-xl text-slate-900 text-xs uppercase focus:border-sky-500 focus:outline-none"
             />
           </div>
 
-          <button
-            type="button"
-            onClick={handleAddRunwaySlide}
-            disabled={!newRunwayUrl.trim()}
-            className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-40 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Añadir a la Pasarela</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={handleAddRunwaySlide}
+              disabled={!newRunwayUrl.trim()}
+              className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-40 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Añadir como Portada Principal</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleClearDemoSlides}
+              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
+              title="Dejar solo tus fotos subidas y remover las de muestra"
+            >
+              <Trash2 className="w-3 h-3 text-slate-500" />
+              <span>Limpiar fotos demo (dejar solo mis imágenes)</span>
+            </button>
+          </div>
         </div>
 
         {/* Existing Slides List */}
@@ -1840,21 +1945,52 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
           {(formData.runwaySlides || []).map((slide, idx) => (
             <div
               key={slide.id || idx}
-              className="flex items-center justify-between p-2.5 bg-slate-50 border border-sky-100 rounded-2xl gap-3"
+              className={`flex items-center justify-between p-2.5 rounded-2xl gap-3 transition-colors ${
+                idx === 0 
+                  ? 'bg-amber-50/70 border-2 border-amber-300 shadow-2xs' 
+                  : 'bg-slate-50 border border-sky-100'
+              }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-16 h-11 rounded-lg overflow-hidden bg-black shrink-0 border border-sky-200">
+                <div className="relative w-16 h-11 rounded-lg overflow-hidden bg-black shrink-0 border border-sky-200">
                   <img src={slide.imageUrl} alt={slide.title || 'Slide'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  {idx === 0 && (
+                    <span className="absolute bottom-0 inset-x-0 bg-amber-500 text-black text-[8px] font-black text-center py-0.5 tracking-tighter uppercase">
+                      Portada #1
+                    </span>
+                  )}
                 </div>
                 <div className="min-w-0">
-                  <p className="font-bold text-slate-800 text-xs truncate">
-                    #{idx + 1} {slide.title || "Imagen de Pasarela"}
-                  </p>
-                  <p className="text-[10px] text-slate-500 truncate max-w-xs">{slide.subtitle || slide.imageUrl}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                      idx === 0 ? 'bg-amber-200 text-amber-900' : 'bg-slate-200 text-slate-700'
+                    }`}>
+                      #{idx + 1}
+                    </span>
+                    <p className="font-bold text-slate-800 text-xs truncate">
+                      {slide.title || "Fotografía de Pasarela"}
+                    </p>
+                    {idx === 0 && (
+                      <span className="text-[9px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.2 rounded font-black tracking-wide">
+                        PRIMERA EN TIENDA
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-500 truncate max-w-xs">{slide.subtitle || (slide.imageUrl.startsWith('data:') ? 'Foto personalizada subida' : slide.imageUrl)}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-1 shrink-0">
+                {idx !== 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleMakeCover(slide.id)}
+                    className="px-2 py-1 rounded-lg bg-amber-100 border border-amber-300 hover:bg-amber-200 text-amber-900 text-[10px] font-bold cursor-pointer transition-colors"
+                    title="Hacer que esta foto sea la primera portada"
+                  >
+                    ⭐ Portada #1
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => handleMoveSlide(idx, 'up')}

@@ -95,8 +95,24 @@ export function subscribeToStoreSettings(
           onUpdate(initialFallback);
         }
       } else {
-        const data = snapshot.data() as StoreSettings;
-        onUpdate(data);
+        const data = snapshot.data() as Partial<StoreSettings>;
+        const mergedSettings: StoreSettings = {
+          ...initialFallback,
+          ...data,
+          runwaySlides: (data.runwaySlides && Array.isArray(data.runwaySlides) && data.runwaySlides.length > 0)
+            ? data.runwaySlides
+            : (initialFallback.runwaySlides || []),
+          brands: (data.brands && Array.isArray(data.brands) && data.brands.length > 0)
+            ? data.brands
+            : (initialFallback.brands || []),
+          shippingOptions: (data.shippingOptions && Array.isArray(data.shippingOptions) && data.shippingOptions.length > 0)
+            ? data.shippingOptions
+            : (initialFallback.shippingOptions || []),
+          coupons: (data.coupons && Array.isArray(data.coupons) && data.coupons.length > 0)
+            ? data.coupons
+            : (initialFallback.coupons || []),
+        };
+        onUpdate(mergedSettings);
       }
     },
     (err) => {
