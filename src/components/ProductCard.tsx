@@ -91,11 +91,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Centered Sneaker / Clothing Image */}
         <img
-          src={product.images[0] || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80'}
+          src={product.images?.[0] || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80'}
           alt={product.name}
           className="w-4/5 h-4/5 object-contain group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
           referrerPolicy="no-referrer"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.dataset.triedFallback) {
+              target.dataset.triedFallback = 'true';
+              target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+            }
+          }}
         />
 
         {/* Low Stock / Out of Stock pill */}

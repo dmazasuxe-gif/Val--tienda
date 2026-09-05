@@ -264,76 +264,23 @@ export const RunwayManager: React.FC<RunwayManagerProps> = ({
 
           <form onSubmit={handleAddSlide} className="space-y-3.5 text-xs">
             
-            {/* Input Type Selector (URL vs Upload) */}
+            {/* Upload Input */}
             <div>
               <label className="block text-slate-700 font-semibold mb-1">
-                Método de Imagen *
+                Subir Fotografía (Galería/PC) *
               </label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setInputType('url')}
-                  className={`flex-1 py-1.5 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all cursor-pointer ${
-                    inputType === 'url'
-                      ? 'bg-sky-50 border-sky-300 text-sky-800'
-                      : 'bg-slate-50 border-slate-200 text-slate-600'
-                  }`}
-                >
-                  <LinkIcon className="w-3.5 h-3.5" />
-                  <span>Enlace Web (URL)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setInputType('upload')}
-                  className={`flex-1 py-1.5 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all cursor-pointer ${
-                    inputType === 'upload'
-                      ? 'bg-sky-50 border-sky-300 text-sky-800'
-                      : 'bg-slate-50 border-slate-200 text-slate-600'
-                  }`}
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Subir de Mi Dispositivo</span>
-                </button>
-              </div>
-            </div>
-
-            {/* URL Input */}
-            {inputType === 'url' ? (
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">
-                  URL de Imagen en Alta Calidad *
-                </label>
+              <label className="border-2 border-dashed border-sky-200 hover:border-sky-400 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer bg-sky-50/40 hover:bg-sky-50 transition-colors">
+                <Upload className="w-6 h-6 text-sky-600" />
+                <span className="font-bold text-sky-800">Haz clic para buscar en tu galería o computadora</span>
+                <span className="text-[10px] text-slate-400">La imagen se optimizará automáticamente (máx. 5MB)</span>
                 <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/..."
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 bg-slate-50 border border-sky-200 rounded-xl text-slate-900 focus:outline-none focus:bg-white focus:border-sky-500 shadow-2xs"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
                 />
-                <p className="text-[10px] text-slate-400 mt-1">
-                  Recomendado: formato horizontal panorámico (16:9 o 21:9), mínimo 1200px de ancho.
-                </p>
-              </div>
-            ) : (
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">
-                  Seleccionar Archivo de Imagen *
-                </label>
-                <label className="border-2 border-dashed border-sky-200 hover:border-sky-400 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 text-center cursor-pointer bg-sky-50/40 hover:bg-sky-50 transition-colors">
-                  <Upload className="w-6 h-6 text-sky-600" />
-                  <span className="font-bold text-sky-800">Haz clic para buscar en tu galería o computadora</span>
-                  <span className="text-[10px] text-slate-400">JPG, PNG o WEBP (máx. 5MB)</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-            )}
+              </label>
+            </div>
 
             {/* Live Mini Preview of Added Image */}
             {imageUrl && (

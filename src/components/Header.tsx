@@ -138,23 +138,38 @@ export const Header: React.FC<HeaderProps> = ({
     announcementItems.unshift(settings.bannerNotice);
   }
 
-  // Duplicate items to create a seamless infinite scroll effect
-  const marqueeItems = [...announcementItems, ...announcementItems, ...announcementItems];
+  // For a seamless CSS marquee, we create a single string of items, then duplicate the entire block twice in the DOM.
+  const marqueeItems = announcementItems;
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-zinc-200 select-none overflow-hidden">
       {/* Top Announcement Bar - Ticker Style */}
-      <div className="bg-zinc-900 border-b border-zinc-950 py-1.5 px-3 text-[11px] text-zinc-200 overflow-hidden font-medium relative group flex">
-        <div className="animate-promo-marquee flex items-center gap-6 whitespace-nowrap min-w-max pr-6">
-          {marqueeItems.map((item, idx) => (
-            <React.Fragment key={idx}>
-              <span className="flex items-center gap-2 tracking-wide font-bold uppercase">
-                <Sparkles className="w-3 h-3 text-yellow-400" />
-                {item}
-              </span>
-              <span className="text-zinc-600 select-none px-2">•</span>
-            </React.Fragment>
-          ))}
+      <div className="bg-zinc-900 border-b border-zinc-950 py-1.5 overflow-hidden relative flex text-[11px] text-zinc-200">
+        <div className="animate-promo-marquee flex whitespace-nowrap min-w-max">
+          {/* First set */}
+          <div className="flex items-center gap-6 pr-6">
+            {marqueeItems.map((item, idx) => (
+              <React.Fragment key={`set1-${idx}`}>
+                <span className="flex items-center gap-2 tracking-wide font-bold uppercase">
+                  <Sparkles className="w-3 h-3 text-yellow-400 shrink-0" />
+                  {item}
+                </span>
+                <span className="text-zinc-600 select-none shrink-0">•</span>
+              </React.Fragment>
+            ))}
+          </div>
+          {/* Second set for perfect loop */}
+          <div className="flex items-center gap-6 pr-6">
+            {marqueeItems.map((item, idx) => (
+              <React.Fragment key={`set2-${idx}`}>
+                <span className="flex items-center gap-2 tracking-wide font-bold uppercase">
+                  <Sparkles className="w-3 h-3 text-yellow-400 shrink-0" />
+                  {item}
+                </span>
+                <span className="text-zinc-600 select-none shrink-0">•</span>
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       </div>
 

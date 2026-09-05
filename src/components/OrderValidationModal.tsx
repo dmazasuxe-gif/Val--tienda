@@ -131,9 +131,17 @@ export const OrderValidationModal: React.FC<OrderValidationModalProps> = ({
                     <div key={idx} className="flex gap-3 items-center bg-white p-2 rounded-xl border border-zinc-200">
                       <div className="w-14 h-16 shrink-0 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200">
                         <img 
-                          src={item.product.images[0] || 'https://via.placeholder.com/150'} 
+                          src={item.product.images[0] || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80'} 
                           alt={item.product.name}
                           className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            if (!target.dataset.triedFallback) {
+                              target.dataset.triedFallback = 'true';
+                              target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+                            }
+                          }}
                         />
                       </div>
                       <div className="flex-1 min-w-0 text-xs">

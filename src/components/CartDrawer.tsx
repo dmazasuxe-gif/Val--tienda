@@ -180,10 +180,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 {/* Thumbnail */}
                 <div className="w-16 h-20 sm:w-20 sm:h-24 rounded-xl overflow-hidden bg-[#f4f4f5] border border-zinc-100 shrink-0 flex items-center justify-center">
                   <img
-                    src={item.product.images[0]}
+                    src={item.product.images[0] || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80'}
                     alt={item.product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.dataset.triedFallback) {
+                        target.dataset.triedFallback = 'true';
+                        target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+                      }
+                    }}
                   />
                 </div>
 

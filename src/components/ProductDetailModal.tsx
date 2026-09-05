@@ -140,6 +140,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         alt=""
                         className="w-full h-full object-contain"
                         referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.dataset.triedFallback) {
+                            target.dataset.triedFallback = 'true';
+                            target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+                          }
+                        }}
                       />
                     </button>
                   ))}
@@ -149,10 +156,17 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               {/* Main Image Container */}
               <div className="relative flex-1 aspect-square rounded-2xl bg-[#f4f4f5] flex items-center justify-center p-6 overflow-hidden">
                 <img
-                  src={product.images[selectedImageIndex] || product.images[0]}
+                  src={product.images[selectedImageIndex] || product.images[0] || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80'}
                   alt={product.name}
                   className="w-full h-full object-contain"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.dataset.triedFallback) {
+                      target.dataset.triedFallback = 'true';
+                      target.src = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80';
+                    }
+                  }}
                 />
 
                 {/* Arrow Controls */}
