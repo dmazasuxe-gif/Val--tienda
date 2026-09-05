@@ -569,6 +569,7 @@ export default function App() {
 
   const handleSaveSettings = (newSettings: StoreSettings) => {
     setSettings(newSettings);
+    saveStoredSettings(newSettings);
     syncSaveStoreSettings(newSettings);
   };
 

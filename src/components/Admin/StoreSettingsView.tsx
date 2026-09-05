@@ -237,10 +237,9 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
       subtitle: newRunwaySubtitle.trim() || undefined,
       badge: newRunwayBadge.trim() || undefined
     };
-    setFormData((prev) => ({
-      ...prev,
-      runwaySlides: [...currentSlides, newSlide]
-    }));
+    const updated = { ...formData, runwaySlides: [...currentSlides, newSlide] };
+    setFormData(updated);
+    onSaveSettings(updated);
     setNewRunwayUrl('');
     setNewRunwayTitle('');
     setNewRunwaySubtitle('');
@@ -252,10 +251,9 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
       alert('Debe mantenerse al menos una imagen en la pasarela.');
       return;
     }
-    setFormData((prev) => ({
-      ...prev,
-      runwaySlides: currentSlides.filter((s) => s.id !== id)
-    }));
+    const updated = { ...formData, runwaySlides: currentSlides.filter((s) => s.id !== id) };
+    setFormData(updated);
+    onSaveSettings(updated);
   };
 
   const handleMoveSlide = (index: number, direction: 'up' | 'down') => {
@@ -265,17 +263,18 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
     const temp = currentSlides[targetIndex];
     currentSlides[targetIndex] = currentSlides[index];
     currentSlides[index] = temp;
-    setFormData((prev) => ({
-      ...prev,
-      runwaySlides: currentSlides
-    }));
+    const updated = { ...formData, runwaySlides: currentSlides };
+    setFormData(updated);
+    onSaveSettings(updated);
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       compressImage(file, 400, (compressedUrl) => {
-        setFormData((prev) => ({ ...prev, logoUrl: compressedUrl }));
+        const updated = { ...formData, logoUrl: compressedUrl };
+        setFormData(updated);
+        onSaveSettings(updated);
       });
     }
   };
@@ -284,7 +283,9 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       compressImage(file, 400, (compressedUrl) => {
-        setFormData((prev) => ({ ...prev, driverPhoto: compressedUrl }));
+        const updated = { ...formData, driverPhoto: compressedUrl };
+        setFormData(updated);
+        onSaveSettings(updated);
       });
     }
   };
@@ -293,7 +294,9 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       compressImage(file, 600, (compressedUrl) => {
-        setFormData((prev) => ({ ...prev, yapeQrUrl: compressedUrl }));
+        const updated = { ...formData, yapeQrUrl: compressedUrl };
+        setFormData(updated);
+        onSaveSettings(updated);
       });
     }
   };
@@ -309,10 +312,9 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
       description: newShipDesc.trim() || undefined,
       isActive: true
     };
-    setFormData((prev) => ({
-      ...prev,
-      shippingOptions: [...(prev.shippingOptions || []), newOption]
-    }));
+    const updated = { ...formData, shippingOptions: [...(formData.shippingOptions || []), newOption] };
+    setFormData(updated);
+    onSaveSettings(updated);
     setNewShipName('');
     setNewShipPrice(15);
     setNewShipTime('24 a 48 horas hábiles');
@@ -1878,7 +1880,7 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
           </h3>
         </div>
         <p className="text-[11px] text-slate-500">
-          Personaliza los mensajes que se envían por WhatsApp. Utiliza variables como <code>{{storeName}}</code>, <code>{{orderNumber}}</code>, <code>{{customerName}}</code>, <code>{{customerPhone}}</code>, <code>{{address}}</code>, <code>{{itemsList}}</code>, <code>{{total}}</code>, <code>{{currencySymbol}}</code>, <code>{{paymentMethod}}</code>, <code>{{status}}</code>, <code>{{driverName}}</code>.
+          Personaliza los mensajes que se envían por WhatsApp. Utiliza variables como <code>{"{{storeName}}"}</code>, <code>{"{{orderNumber}}"}</code>, <code>{"{{customerName}}"}</code>, <code>{"{{customerPhone}}"}</code>, <code>{"{{address}}"}</code>, <code>{"{{itemsList}}"}</code>, <code>{"{{total}}"}</code>, <code>{"{{currencySymbol}}"}</code>, <code>{"{{paymentMethod}}"}</code>, <code>{"{{status}}"}</code>, <code>{"{{driverName}}"}</code>.
         </p>
         
         <div className="grid grid-cols-1 gap-4">
