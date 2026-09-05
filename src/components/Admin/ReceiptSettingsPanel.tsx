@@ -49,8 +49,17 @@ export const ReceiptSettingsPanel: React.FC<ReceiptSettingsPanelProps> = ({ sett
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         if (ctx) {
+          // Si el archivo es PNG o WEBP (que soportan transparencia), mantener el formato para no perder la transparencia.
+          // Si es JPEG, usar JPEG para mayor compresión.
+          const outputType = (file.type === 'image/png' || file.type === 'image/webp') ? 'image/png' : 'image/jpeg';
+          
           ctx.drawImage(img, 0, 0, width, height);
-          callback(canvas.toDataURL('image/jpeg', 0.8));
+          
+          if (outputType === 'image/jpeg') {
+            callback(canvas.toDataURL('image/jpeg', 0.8));
+          } else {
+            callback(canvas.toDataURL('image/png'));
+          }
         } else {
           callback(e.target?.result as string);
         }

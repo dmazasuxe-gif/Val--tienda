@@ -210,7 +210,12 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          callback(canvas.toDataURL('image/jpeg', 0.8));
+          const outputType = (file.type === 'image/png' || file.type === 'image/webp') ? 'image/png' : 'image/jpeg';
+          if (outputType === 'image/jpeg') {
+            callback(canvas.toDataURL('image/jpeg', 0.8));
+          } else {
+            callback(canvas.toDataURL('image/png'));
+          }
         }
       };
       if (typeof e.target?.result === 'string') {
