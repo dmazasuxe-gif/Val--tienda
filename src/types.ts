@@ -127,6 +127,16 @@ export interface StoreSettings {
     driverContact?: string;
     generalSupport?: string;
   };
+  
+  // Configuración de Boleta / Ticket de Venta
+  receiptSettings?: {
+    ruc: string;
+    legalName: string;
+    address: string;
+    phone: string;
+    logoUrl: string;
+    footerMessage: string;
+  };
 }
 
 export interface Coupon {
