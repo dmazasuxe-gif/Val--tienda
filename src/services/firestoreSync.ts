@@ -158,12 +158,8 @@ export async function syncReduceStock(productId: string, quantityToDeduct: numbe
  * Cloud Operations for Orders
  */
 export async function syncCreateOrder(order: Order): Promise<void> {
-  try {
-    const docRef = doc(db, ORDERS_COLL, order.id);
-    await setDoc(docRef, order);
-  } catch (err) {
-    console.warn('[Firestore] Error saving order:', err);
-  }
+  const docRef = doc(db, ORDERS_COLL, order.id);
+  await setDoc(docRef, order);
 }
 
 export async function syncUpdateOrderStatus(orderId: string, status: Order['status']): Promise<void> {

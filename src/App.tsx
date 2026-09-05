@@ -38,6 +38,7 @@ import {
   syncReduceStock,
   syncCreateOrder,
   syncUpdateOrderStatus,
+  syncDeleteOrder,
   syncSaveStoreSettings
 } from './services/firestoreSync';
 
@@ -444,10 +445,10 @@ export default function App() {
   };
 
   // Checkout and Order Placement
-  const handleOrderPlaced = (newOrder: Order) => {
+  const handleOrderPlaced = async (newOrder: Order) => {
     // 1. Add order to state & cloud
-    setOrders((prev) => [newOrder, ...prev]);
-    syncCreateOrder(newOrder);
+    setOrders((prev) => prev.some(o => o.id === newOrder.id) ? prev : [newOrder, ...prev]);
+    await syncCreateOrder(newOrder);
 
     // 2. Reduce products stock in state & cloud
     setProducts((prev) =>
@@ -455,7 +456,7 @@ export default function App() {
         const orderedItem = newOrder.items.find((it) => it.product.id === p.id);
         if (orderedItem) {
           const nextStock = Math.max(0, p.stock - orderedItem.quantity);
-          syncReduceStock(p.id, nextStock);
+          // syncReduceStock(p.id, nextStock); // Removing this synchronous call, we will do it after state update
           return { ...p, stock: nextStock };
         }
         return p;
@@ -558,6 +559,13 @@ export default function App() {
     syncReduceStock(productId, newStock);
   };
 
+  const handleDeleteOrder = (orderId: string) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar esta orden de forma permanente?')) {
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      syncDeleteOrder(orderId);
+    }
+  };
+
   const handleUpdateOrderStatus = (orderId: string, status: OrderStatus) => {
     setOrders((prev) =>
       prev.map((o) =>
@@ -600,6 +608,7 @@ export default function App() {
             onDeleteProduct={handleDeleteProduct}
             onUpdateProductStock={handleUpdateProductStock}
             onUpdateOrderStatus={handleUpdateOrderStatus}
+            onDeleteOrder={handleDeleteOrder}
             onSaveSettings={handleSaveSettings}
             onExitAdmin={() => setViewMode('store')}
             onLogoutAdmin={handleLogoutAdmin}

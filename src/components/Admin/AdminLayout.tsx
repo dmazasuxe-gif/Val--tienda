@@ -36,6 +36,7 @@ interface AdminLayoutProps {
   onDeleteProduct: (productId: string) => void;
   onUpdateProductStock: (productId: string, newStock: number) => void;
   onUpdateOrderStatus: (orderId: string, status: OrderStatus) => void;
+  onDeleteOrder: (orderId: string) => void;
   onSaveSettings: (settings: StoreSettings) => void;
   onExitAdmin: () => void;
   onLogoutAdmin: () => void;
@@ -52,6 +53,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   onDeleteProduct,
   onUpdateProductStock,
   onUpdateOrderStatus,
+  onDeleteOrder,
   onSaveSettings,
   onExitAdmin,
   onLogoutAdmin,
@@ -334,6 +336,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           <OrderManager
             orders={orders}
             onUpdateOrderStatus={onUpdateOrderStatus}
+            onDeleteOrder={onDeleteOrder}
             settings={settings}
             onPreviewTracking={onPreviewTracking}
           />

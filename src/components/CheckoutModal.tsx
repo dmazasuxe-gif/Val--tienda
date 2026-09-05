@@ -35,7 +35,7 @@ interface CheckoutModalProps {
   discount: number;
   promoCode: string;
   settings: StoreSettings;
-  onOrderPlaced: (order: Order) => void;
+  onOrderPlaced: (order: Order) => Promise<void>;
   onOpenTracking?: (orderCode: string) => void;
 }
 
@@ -128,7 +128,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   }, [placedOrder, settings]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: { [k: string]: string } = {};
 
@@ -180,9 +180,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       newOrder.notes = finalNotes;
     }
 
-    setTimeout(() => {
+    try {
+      await onOrderPlaced(newOrder);
       saveLastTrackedCode(orderNumber);
-      onOrderPlaced(newOrder);
       setPlacedOrder(newOrder);
       setIsSubmitting(false);
 
@@ -196,7 +196,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       } catch (err) {
         console.error(err);
       }
-    }, 400);
+    } catch (err) {
+      console.error('Error placing order:', err);
+      alert('Hubo un error al procesar la orden. Por favor intenta de nuevo.');
+      setIsSubmitting(false);
+    }
   };
 
   const yapeNumberToDisplay = settings.yapeNumber || settings.whatsappDisplayNumber || '987 654 321';
