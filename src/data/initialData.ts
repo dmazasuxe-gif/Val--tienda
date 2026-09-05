@@ -181,7 +181,17 @@ export const INITIAL_STORE_SETTINGS: StoreSettings = {
   ],
 
   // Cupones de Sorteo / Descuento en Dinero (Un solo uso)
-  coupons: INITIAL_COUPONS
+  coupons: INITIAL_COUPONS,
+
+  // Plantillas de WhatsApp
+  whatsappTemplates: {
+    orderGeneric: "✨ *NUEVO PEDIDO REALIZADO - {{storeName}}* ✨\n📋 *Orden:* #{{orderNumber}}\n👤 *Cliente:* {{customerName}}\n📱 *Teléfono:* {{customerPhone}}\n📍 *Dirección:* {{address}}\n🛒 *Productos:*\n{{itemsList}}\n\n💵 *Total:* {{currencySymbol}} {{total}}\n💳 *Método:* {{paymentMethod}}\n🚚 *Seguimiento:* Rastrearé mi paquete con el código *{{orderNumber}}*.",
+    orderContraEntrega: "👋 ¡Hola *{{storeName}}*!\nAcabo de realizar mi pedido *#{{orderNumber}}* con método de pago *PAGO CONTRA ENTREGA* 📦💵.\n\n👤 *Cliente:* {{customerName}}\n📍 *Dirección:* {{address}}\n🛒 *Productos:*\n{{itemsList}}\n\n💵 *Total a Pagar:* *{{currencySymbol}} {{total}}*\n\nPor favor confirmen la recepción de mi pedido.",
+    orderYapePlin: "👋 ¡Hola *{{storeName}}*!\nAcabo de realizar el pago mediante *YAPE / PLIN* 📱💸 de mi pedido *#{{orderNumber}}*.\n\n👤 *Cliente:* {{customerName}}\n📍 *Destino:* {{address}}\n💵 *Monto Pagado:* *{{currencySymbol}} {{total}}*\n🛒 *Productos:*\n{{itemsList}}\n\n📸 *Adjunto a este chat la captura de pantalla / comprobante del Yape/Plin.*",
+    orderTransferencia: "👋 ¡Hola *{{storeName}}*!\nAcabo de realizar la *TRANSFERENCIA BANCARIA* 🏦📄 de mi pedido *#{{orderNumber}}*.\n\n👤 *Cliente:* {{customerName}}\n📍 *Destino:* {{address}}\n💵 *Monto Transferido:* *{{currencySymbol}} {{total}}*\n🛒 *Productos:*\n{{itemsList}}\n\n📸 *Adjunto en este mensaje la foto / voucher de la transferencia bancaria.*",
+    trackingQuery: "👋 ¡Hola *{{storeName}}*!\nDeseo hacer una consulta sobre el estado de mi envío:\n🚚 *Código de Rastreo:* #{{orderNumber}}\n👤 *Cliente:* {{customerName}}\n📍 *Destino:* {{address}}\n📦 *Estado actual:* {{status}}\n\n¿Podrían brindarme información adicional sobre el despacho?",
+    driverContact: "👋 ¡Hola {{driverName}}! Le escribo respecto a la entrega de mi pedido:\n🚚 *Guía de Entrega:* #{{orderNumber}}\n👤 *Cliente:* {{customerName}}\n📍 *Destino:* {{address}}\n📦 *Estado:* {{status}}\n\n¿A qué hora aproximadamente estará llegando a mi domicilio?"
+  }
 };
 
 export const INITIAL_PRODUCTS: Product[] = [

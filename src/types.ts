@@ -116,6 +116,17 @@ export interface StoreSettings {
   driverWhatsapp?: string;
   driverRole?: string;
   driverVehicle?: string;
+
+  // Plantillas de WhatsApp
+  whatsappTemplates?: {
+    orderGeneric?: string;
+    orderContraEntrega?: string;
+    orderYapePlin?: string;
+    orderTransferencia?: string;
+    trackingQuery?: string;
+    driverContact?: string;
+    generalSupport?: string;
+  };
 }
 
 export interface Coupon {
