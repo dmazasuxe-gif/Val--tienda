@@ -423,16 +423,44 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                                   <head>
                                     <title>Imprimir Código de Barras</title>
                                     <style>
-                                      @page { margin: 0; size: auto; }
-                                      body {
-                                        margin: 0;
-                                        padding: 10px;
-                                        display: flex;
-                                        justify-content: center;
-                                        align-items: flex-start;
-                                        background: white;
+                                      @media print {
+                                        @page { 
+                                          margin: 0; 
+                                          size: 58mm 40mm; /* Formato ticketera/etiqueta térmica */
+                                        }
+                                        html, body {
+                                          margin: 0 !important;
+                                          padding: 0 !important;
+                                          width: 58mm;
+                                          height: 40mm;
+                                          background: white;
+                                          overflow: hidden;
+                                        }
+                                        body {
+                                          display: flex;
+                                          justify-content: center;
+                                          align-items: center;
+                                        }
+                                        svg { 
+                                          max-width: 100%; 
+                                          max-height: 100%; 
+                                          page-break-inside: avoid;
+                                          page-break-after: avoid;
+                                          page-break-before: avoid;
+                                          display: block;
+                                        }
                                       }
-                                      svg { max-width: 100%; height: auto; }
+                                      @media screen {
+                                        body {
+                                          margin: 0;
+                                          padding: 10px;
+                                          display: flex;
+                                          justify-content: center;
+                                          align-items: flex-start;
+                                          background: #f8fafc;
+                                        }
+                                        svg { max-width: 100%; height: auto; }
+                                      }
                                     </style>
                                   </head>
                                   <body>
