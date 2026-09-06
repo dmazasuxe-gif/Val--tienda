@@ -179,16 +179,6 @@ export interface StoreBrand {
   order?: number; // Ordering index
 }
 
-export interface RunwaySlide {
-  id: string;
-  imageUrl: string;
-  title?: string;
-  subtitle?: string;
-  badge?: string;
-  linkCategory?: 'all' | 'calzado' | 'ropa';
-  linkGender?: 'all' | 'varones' | 'mujeres' | 'ninos';
-}
-
 export interface FilterState {
   search: string;
   category: 'all' | CategoryType;
@@ -212,4 +202,9 @@ export interface OrderNotification {
   itemCount: number;
   timestamp: string;
   read: boolean;
+}
+
+export interface RunwaySlide {
+  id: string;
+  imageUrl: string;
 }

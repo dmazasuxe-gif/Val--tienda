@@ -7,7 +7,8 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Target provisioned Firestore database, ignoring undefined properties natively
 export const db = initializeFirestore(app, {
-  ignoreUndefinedProperties: true
+  ignoreUndefinedProperties: true,
+  experimentalForceLongPolling: true
 }, firebaseConfig.firestoreDatabaseId || undefined);
 
 // Validate connection on startup

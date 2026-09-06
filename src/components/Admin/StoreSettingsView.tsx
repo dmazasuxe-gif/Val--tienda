@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StoreSettings, RunwaySlide, ShippingOption, Coupon } from '../../types';
+import { StoreSettings, ShippingOption, Coupon } from '../../types';
 import { 
   Store, 
   MessageCircle, 
@@ -49,18 +49,11 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
   const [formData, setFormData] = useState<StoreSettings>({ ...settings });
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [pushStatus, setPushStatus] = useState<string>('');
-  const [runwayUploadFeedback, setRunwayUploadFeedback] = useState<string | null>(null);
 
   // Synchronize formData whenever settings prop changes (e.g. from Cloud sync or parent)
   useEffect(() => {
     setFormData({ ...settings });
   }, [settings]);
-
-  // Runway Slide Quick Add State
-  const [newRunwayUrl, setNewRunwayUrl] = useState('');
-  const [newRunwayTitle, setNewRunwayTitle] = useState('');
-  const [newRunwaySubtitle, setNewRunwaySubtitle] = useState('');
-  const [newRunwayBadge, setNewRunwayBadge] = useState('PASARELA 2026');
 
   // Shipping Options State
   const [newShipName, setNewShipName] = useState('');
@@ -238,106 +231,6 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
     reader.readAsDataURL(file);
   };
 
-  const handleRunwayFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      compressImage(file, 1000, (compressedUrl) => {
-        // Instantly prepend new slide at position #1 (index 0) so it appears immediately on the storefront
-        const currentSlides = formData.runwaySlides || [];
-        const newSlide: RunwaySlide = {
-          id: `runway-${Date.now()}`,
-          imageUrl: compressedUrl,
-          title: newRunwayTitle.trim() || 'AURA MODA & CALZADO',
-          subtitle: newRunwaySubtitle.trim() || 'Nueva Colección y Tendencias Exclusivas',
-          badge: newRunwayBadge.trim() || 'NUEVA COLECCIÓN'
-        };
-        const updated = { ...formData, runwaySlides: [newSlide, ...currentSlides] };
-        setFormData(updated);
-        onSaveSettings(updated);
-        setNewRunwayUrl('');
-        setNewRunwayTitle('');
-        setNewRunwaySubtitle('');
-        setRunwayUploadFeedback('✅ ¡Fotografía guardada con éxito como Portada Principal de la Pasarela!');
-        setTimeout(() => setRunwayUploadFeedback(null), 5000);
-      }, 0.68);
-      // Reset input value to allow selecting the same file again
-      e.target.value = '';
-    }
-  };
-
-  const handleAddRunwaySlide = () => {
-    if (!newRunwayUrl.trim()) return;
-    const currentSlides = formData.runwaySlides || [];
-    const newSlide: RunwaySlide = {
-      id: `runway-${Date.now()}`,
-      imageUrl: newRunwayUrl.trim(),
-      title: newRunwayTitle.trim() || 'AURA MODA & CALZADO',
-      subtitle: newRunwaySubtitle.trim() || 'Nueva Colección y Tendencias Exclusivas',
-      badge: newRunwayBadge.trim() || 'NUEVA COLECCIÓN'
-    };
-    // Add to beginning of slides so it is immediately visible
-    const updated = { ...formData, runwaySlides: [newSlide, ...currentSlides] };
-    setFormData(updated);
-    onSaveSettings(updated);
-    setNewRunwayUrl('');
-    setNewRunwayTitle('');
-    setNewRunwaySubtitle('');
-    setRunwayUploadFeedback('✅ ¡Fotografía añadida a la pasarela!');
-    setTimeout(() => setRunwayUploadFeedback(null), 4000);
-  };
-
-  const handleMakeCover = (slideId: string) => {
-    const currentSlides = [...(formData.runwaySlides || [])];
-    const targetIdx = currentSlides.findIndex(s => s.id === slideId);
-    if (targetIdx <= 0) return;
-    const [selected] = currentSlides.splice(targetIdx, 1);
-    currentSlides.unshift(selected);
-    const updated = { ...formData, runwaySlides: currentSlides };
-    setFormData(updated);
-    onSaveSettings(updated);
-    setRunwayUploadFeedback(`⭐ "${selected.title || 'Imagen'}" ahora es la Portada Principal (#1) de la tienda.`);
-    setTimeout(() => setRunwayUploadFeedback(null), 4000);
-  };
-
-  const handleClearDemoSlides = () => {
-    if (window.confirm('¿Deseas remover las imágenes de muestra predeterminadas para dejar solo tus propias fotografías en la pasarela?')) {
-      const isDemoSlide = (id: string) => id === 'runway-1' || id === 'runway-2' || id === 'runway-3' || id === 'runway-4';
-      const userCustom = (formData.runwaySlides || []).filter(s => !isDemoSlide(s.id));
-      if (userCustom.length === 0) {
-        alert('Aún no has subido fotografías propias. Sube primero una foto desde tu celular o PC antes de limpiar las de muestra.');
-        return;
-      }
-      const updated = { ...formData, runwaySlides: userCustom };
-      setFormData(updated);
-      onSaveSettings(updated);
-      setRunwayUploadFeedback('✅ Se limpiaron las fotos de muestra. Ahora solo se muestran tus fotos subidas.');
-      setTimeout(() => setRunwayUploadFeedback(null), 4000);
-    }
-  };
-
-  const handleRemoveRunwaySlide = (id: string) => {
-    const currentSlides = formData.runwaySlides || [];
-    if (currentSlides.length <= 1) {
-      alert('Debe mantenerse al menos una imagen en la pasarela.');
-      return;
-    }
-    const updated = { ...formData, runwaySlides: currentSlides.filter((s) => s.id !== id) };
-    setFormData(updated);
-    onSaveSettings(updated);
-  };
-
-  const handleMoveSlide = (index: number, direction: 'up' | 'down') => {
-    const currentSlides = [...(formData.runwaySlides || [])];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= currentSlides.length) return;
-    const temp = currentSlides[targetIndex];
-    currentSlides[targetIndex] = currentSlides[index];
-    currentSlides[index] = temp;
-    const updated = { ...formData, runwaySlides: currentSlides };
-    setFormData(updated);
-    onSaveSettings(updated);
-  };
-
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -512,27 +405,7 @@ export const StoreSettingsView: React.FC<StoreSettingsViewProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let finalSettings = { ...formData };
-    if (newRunwayUrl.trim()) {
-      const currentSlides = finalSettings.runwaySlides || [];
-      const alreadyHasIt = currentSlides.some(s => s.imageUrl === newRunwayUrl.trim());
-      if (!alreadyHasIt) {
-        const newSlide: RunwaySlide = {
-          id: `runway-${Date.now()}`,
-          imageUrl: newRunwayUrl.trim(),
-          title: newRunwayTitle.trim() || 'AURA MODA & CALZADO',
-          subtitle: newRunwaySubtitle.trim() || 'Nueva Colección y Tendencias Exclusivas',
-          badge: newRunwayBadge.trim() || 'NUEVA COLECCIÓN'
-        };
-        finalSettings = {
-          ...finalSettings,
-          runwaySlides: [newSlide, ...currentSlides]
-        };
-        setFormData(finalSettings);
-        setNewRunwayUrl('');
-      }
-    }
-    onSaveSettings(finalSettings);
+    onSaveSettings(formData);
     setSavedSuccess(true);
     setTimeout(() => {
       setSavedSuccess(false);

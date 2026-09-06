@@ -703,24 +703,7 @@ export default function App() {
             cartBounceTrigger={cartBounceTrigger}
           />
 
-          {/* Pasarela Principal de Imágenes (Promotional Banner) - Siempre Visible en la Tienda */}
-          <Banner
-            settings={settings}
-            onExploreCategory={(cat, gen) => {
-              setSelectedCategory(cat);
-              if (gen) setSelectedGender(gen);
-              setCurrentPage(1);
-            }}
-            onShopNow={(cat, gen) => {
-              setSelectedCategory(cat);
-              setSelectedGender(gen);
-              setCurrentPage(1);
-            }}
-            onOpenSale={() => {
-              setFilters((prev) => ({ ...prev, onSaleOnly: true }));
-              setCurrentPage(1);
-            }}
-          />
+          <Banner settings={settings} />
 
           {/* EN LIQUIDACIÓN Section - Siempre Visible Inmediatamente Debajo de la Pasarela de Imágenes */}
           <LiquidationSection

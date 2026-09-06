@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { FilterState, ProductColor, StoreSettings } from '../types';
 import { X, RotateCcw, Check, CheckSquare, Square, SlidersHorizontal } from 'lucide-react';
 
@@ -27,8 +28,6 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
   settings,
   totalFilteredCount
 }) => {
-  if (!isOpen) return null;
-
   const toggleSize = (size: string) => {
     const exists = filters.selectedSizes.includes(size);
     const updated = exists
@@ -54,12 +53,27 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs animate-fade-in font-sans">
-      {/* Backdrop tap to close */}
-      <div className="absolute inset-0" onClick={onClose} />
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end font-sans">
+          {/* Backdrop tap to close */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-xs" 
+            onClick={onClose} 
+          />
 
-      {/* Drawer Panel */}
-      <div className="relative w-full max-w-md bg-white border-l border-zinc-200 h-full flex flex-col shadow-2xl z-10 animate-slide-left text-zinc-900">
+          {/* Drawer Panel */}
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="relative w-full max-w-md bg-white border-l border-zinc-200 h-full flex flex-col shadow-2xl z-10 text-zinc-900"
+          >
         
         {/* Drawer Header */}
         <div className="p-4 sm:p-5 border-b border-zinc-200 flex items-center justify-between bg-white">
@@ -257,7 +271,9 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
           </button>
         </div>
 
-      </div>
-    </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 };

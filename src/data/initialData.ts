@@ -1,4 +1,4 @@
-import { Product, StoreSettings, Order, RunwaySlide, ShippingOption, Coupon, StoreBrand } from '../types';
+import { Product, StoreSettings, Order, ShippingOption, Coupon, StoreBrand, RunwaySlide } from '../types';
 import { BRAND_SVGS } from './brandLogos';
 
 export const DEFAULT_STORE_BRANDS: StoreBrand[] = [
@@ -170,38 +170,10 @@ export const INITIAL_STORE_SETTINGS: StoreSettings = {
     {
       id: "runway-1",
       imageUrl: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1600&auto=format&fit=crop&q=80",
-      title: "Alta Costura & Tendencia 2026",
-      subtitle: "Prendas icónicas y calzado seleccionados para un estilo inconfundible",
-      badge: "PASARELA EXCLUSIVA",
-      linkCategory: "ropa",
-      linkGender: "mujeres"
     },
     {
       id: "runway-2",
       imageUrl: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&auto=format&fit=crop&q=80",
-      title: "Colección Calzado & Distinción",
-      subtitle: "Cuero legítimo, ergonomía y diseño italiano a tus pies",
-      badge: "ALTA GAMA",
-      linkCategory: "calzado",
-      linkGender: "varones"
-    },
-    {
-      id: "runway-3",
-      imageUrl: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1600&auto=format&fit=crop&q=80",
-      title: "Elegancia Contemporánea",
-      subtitle: "Siluetas fluidas y tonos sobrios para ocasiones memorables",
-      badge: "NUEVA TEMPORADA",
-      linkCategory: "ropa",
-      linkGender: "varones"
-    },
-    {
-      id: "runway-4",
-      imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1600&auto=format&fit=crop&q=80",
-      title: "Vanguardia & Moda Streetwear Chic",
-      subtitle: "La expresión moderna del lujo urbano para hombres y mujeres",
-      badge: "TENDENCIA GLOBAL",
-      linkCategory: "ropa",
-      linkGender: "mujeres"
     }
   ],
 
